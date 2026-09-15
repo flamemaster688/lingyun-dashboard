@@ -1,0 +1,58 @@
+# ===== 部署产物（可重生成，不进库）=====
+dist/
+
+# ===== 依赖 =====
+node_modules/
+
+# ===== 基座包压缩包（大文件，靠 build/make_zip.py 重打）=====
+*.zip
+
+# ===== 系统/编辑器垃圾 =====
+.DS_Store
+Thumbs.db
+*.log
+~$*
+
+# ===== Python 缓存 =====
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# ===== 私有工作区（个人记忆/自动化状态，不进共享仓库）=====
+.workbuddy/
+
+# ===== 拆分前的旧版本脚本（已由 lingyun.app.v10.js + index.legacy.html 兜底）=====
+lingyun.app.v3.js
+lingyun.app.v8.js
+lingyun.app.v9.js
+
+# ===== Local Netlify folder =====
+.netlify
+static/.netlify/
+
+# ===== 本地临时/调试/中间产物（不进共享仓库）=====
+_raw_*
+*.bak*
+*_bak_*
+_step*
+_copy*
+_smp/
+_month_dump_map.json
+diag_*.js
+_refresh_log.txt
+refresh_log.txt
+
+# ===== 一次性交付/调研素材（不放共享仓库）=====
+screenshots/
+0828_delivery/
+*.png
+drill_*.png
+_peek_*.js
+
+# ===== 个人机器路径泄漏防护（绝不进库）=====
+赵莹/
+Users/
+C:/
+c:/

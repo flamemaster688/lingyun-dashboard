@@ -1,0 +1,11 @@
+{
+  "page": "province",
+  "owner": "吴超",
+  "docName": "（待填）金山文档文件名",
+  "fileId": "（待填）kdocs file_id",
+  "refresh": "daily",
+  "feeds": [
+    { "domain": "provinces", "sheet": "（待填）", "range": "（待填）", "fields": ["province", "calls", "tokens", "cost", "activeAgents", "monthlyCalls", "monthlyTokens", "monthlyCost", "monthlyActive"] }
+  ],
+  "note": "排除『总计』聚合行避免重复计数。"
+}

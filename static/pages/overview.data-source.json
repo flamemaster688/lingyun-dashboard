@@ -1,0 +1,14 @@
+{
+  "page": "overview",
+  "owner": "吴超",
+  "docName": "（待填）金山文档文件名",
+  "fileId": "（待填）kdocs file_id",
+  "refresh": "daily",
+  "feeds": [
+    { "domain": "overview", "sheet": "（待填）", "range": "（待填）", "fields": ["month", "calls", "personYear", "activeAgents"] },
+    { "domain": "capability", "sheet": "（待填）", "range": "（待填）", "fields": ["month", "yearly", "monthly"] },
+    { "domain": "agents", "sheet": "（待填）", "range": "（待填）", "fields": ["name", "province", "type", "monthly", "total"] },
+    { "domain": "provinces", "sheet": "（待填）", "range": "（待填）", "fields": ["province", "calls", "tokens", "cost", "activeAgents", "monthlyCalls", "monthlyTokens", "monthlyCost", "monthlyActive"] }
+  ],
+  "note": "总览为全国汇总（数据源无分省明细），省份筛选不生效；模型成功率/耗时无字段→显『/』。"
+}

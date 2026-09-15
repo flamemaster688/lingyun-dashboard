@@ -1,0 +1,606 @@
+{
+  "page": "tracking",
+  "owner": "赵莹",
+  "note": "mock 数据（由 extract 从真实 data.js 拆分，离线开发用；接真实金山文档后由赵莹覆盖）",
+  "meta": {
+    "source": "金山文档·数据验证（在线）",
+    "fileUrl": "https://www.kdocs.cn/l/csizWM8t2VLc",
+    "generatedAt": "2026-08-17 12:10",
+    "period": "2026年1-7月",
+    "provinces": [
+      "上海",
+      "云南",
+      "内蒙古",
+      "北京",
+      "吉林",
+      "四川",
+      "天津",
+      "宁夏",
+      "安徽",
+      "山东",
+      "山西",
+      "广东",
+      "广西",
+      "总计",
+      "新疆",
+      "本部",
+      "江苏",
+      "江西",
+      "河北",
+      "河南",
+      "浙江",
+      "海南",
+      "湖北",
+      "湖南",
+      "甘肃",
+      "福建",
+      "西藏",
+      "贵州",
+      "辽宁",
+      "重庆",
+      "陕西",
+      "青海",
+      "黑龙江"
+    ],
+    "timeLevels": {
+      "months": [
+        "1月",
+        "2月",
+        "3月",
+        "4月",
+        "5月",
+        "6月",
+        "7月"
+      ],
+      "weeks": [
+        "0720-0726"
+      ],
+      "days": []
+    },
+    "units": {
+      "national": "总计",
+      "hq": "本部",
+      "total": 33,
+      "note": "省份筛选含 31 个省分中心 + 本部 + 全国(总计) 共 33 个单位；周维度仅埋点模块可用；日维度数据尚未接入。"
+    },
+    "gaps": [
+      "告警明细：金山文档「数据验证」未包含告警/异动数据，告警 Tab 以「/」显示。",
+      "智能体活跃度：真实文件仅有等效人年，无独立「活跃/健康分」字段，相关维度以「/」显示。",
+      "同比/环比：文件无去年同期数据，部分增长率以「/」显示。"
+    ]
+  },
+  "tracking": [
+    {
+      "page": "AI能力工厂-数据管理-数据标注-语音_数据标注",
+      "clicks": 7237,
+      "visitors": 240,
+      "exposures": 19705,
+      "ctr": 36.73
+    },
+    {
+      "page": "智能应用工厂-智能体展示-个人应用",
+      "clicks": 620,
+      "visitors": 185,
+      "exposures": 968,
+      "ctr": 64.05
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据标注-文本_标注管理",
+      "clicks": 458,
+      "visitors": 155,
+      "exposures": 1807,
+      "ctr": 25.35
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据标注-语音_项目管理",
+      "clicks": 310,
+      "visitors": 40,
+      "exposures": 292,
+      "ctr": 106.16
+    },
+    {
+      "page": "智能应用工厂-智能体展示-团队应用",
+      "clicks": 289,
+      "visitors": 111,
+      "exposures": 193,
+      "ctr": 149.74
+    },
+    {
+      "page": "APP灵犀-流程管理-业务流程",
+      "clicks": 176,
+      "visitors": 51,
+      "exposures": 215,
+      "ctr": 81.86
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据标注-语音_数据集管理",
+      "clicks": 132,
+      "visitors": 27,
+      "exposures": 125,
+      "ctr": 105.6
+    },
+    {
+      "page": "APP灵犀-评测管理-交互日志查询",
+      "clicks": 126,
+      "visitors": 33,
+      "exposures": 121,
+      "ctr": 104.13
+    },
+    {
+      "page": "AI能力工厂-工具管理-模型工具",
+      "clicks": 108,
+      "visitors": 40,
+      "exposures": 989,
+      "ctr": 10.92
+    },
+    {
+      "page": "智能应用工厂-智能体展示-应用广场",
+      "clicks": 103,
+      "visitors": 88,
+      "exposures": 26,
+      "ctr": 396.15
+    },
+    {
+      "page": "APP灵犀-评测管理-回放管理",
+      "clicks": 96,
+      "visitors": 29,
+      "exposures": 207,
+      "ctr": 46.38
+    },
+    {
+      "page": "智能应用工厂-运营管理-上线审批",
+      "clicks": 93,
+      "visitors": 40,
+      "exposures": 178,
+      "ctr": 52.25
+    },
+    {
+      "page": "智能应用工厂-智能体构建-工作流",
+      "clicks": 93,
+      "visitors": 81,
+      "exposures": 20,
+      "ctr": 465.0
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据标注-文本_任务管理",
+      "clicks": 76,
+      "visitors": 33,
+      "exposures": 58,
+      "ctr": 131.03
+    },
+    {
+      "page": "个人探索-信息库-个人信息库",
+      "clicks": 70,
+      "visitors": 40,
+      "exposures": 52,
+      "ctr": 134.62
+    },
+    {
+      "page": "智能应用工厂-智能体构建-智能体",
+      "clicks": 66,
+      "visitors": 78,
+      "exposures": 674,
+      "ctr": 9.79
+    },
+    {
+      "page": "APP灵犀-流程管理-业务流程_旧",
+      "clicks": 66,
+      "visitors": 13,
+      "exposures": 52,
+      "ctr": 126.92
+    },
+    {
+      "page": "智能应用工厂-智能体监控-运营统计",
+      "clicks": 63,
+      "visitors": 27,
+      "exposures": 41,
+      "ctr": 153.66
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据飞轮-任务监控",
+      "clicks": 58,
+      "visitors": 14,
+      "exposures": 224,
+      "ctr": 25.89
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据标注-统计管理",
+      "clicks": 54,
+      "visitors": 14,
+      "exposures": 53,
+      "ctr": 101.89
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据集管理-数据接入",
+      "clicks": 48,
+      "visitors": 21,
+      "exposures": 45,
+      "ctr": 106.67
+    },
+    {
+      "page": "个人探索-AI问答-AI问答",
+      "clicks": 44,
+      "visitors": 61,
+      "exposures": 1513,
+      "ctr": 2.91
+    },
+    {
+      "page": "APP灵犀-资源库管理-业务接口",
+      "clicks": 42,
+      "visitors": 14,
+      "exposures": 22,
+      "ctr": 190.91
+    },
+    {
+      "page": "智能应用工厂-智能体构建-对话流",
+      "clicks": 41,
+      "visitors": 43,
+      "exposures": 7,
+      "ctr": 585.71
+    },
+    {
+      "page": "智能应用工厂-智能体监控-运营总览",
+      "clicks": 37,
+      "visitors": 27,
+      "exposures": 17,
+      "ctr": 217.65
+    },
+    {
+      "page": "APP灵犀-意图管理-意图配置",
+      "clicks": 37,
+      "visitors": 18,
+      "exposures": 49,
+      "ctr": 75.51
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据标注-团队管理",
+      "clicks": 36,
+      "visitors": 12,
+      "exposures": 24,
+      "ctr": 150.0
+    },
+    {
+      "page": "APP灵犀-流程管理-流程审批管理",
+      "clicks": 32,
+      "visitors": 15,
+      "exposures": 21,
+      "ctr": 152.38
+    },
+    {
+      "page": "APP灵犀-应用发布-应用发布",
+      "clicks": 30,
+      "visitors": 14,
+      "exposures": 165,
+      "ctr": 18.18
+    },
+    {
+      "page": "APP灵犀-资源库管理-卡片模板",
+      "clicks": 28,
+      "visitors": 7,
+      "exposures": 28,
+      "ctr": 100.0
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型评测-任务管理",
+      "clicks": 27,
+      "visitors": 8,
+      "exposures": 43,
+      "ctr": 62.79
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据飞轮-任务创建",
+      "clicks": 25,
+      "visitors": 13,
+      "exposures": 25,
+      "ctr": 100.0
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型授权-调用申请",
+      "clicks": 24,
+      "visitors": 17,
+      "exposures": 10,
+      "ctr": 240.0
+    },
+    {
+      "page": "个人探索-信息库-团队信息库",
+      "clicks": 21,
+      "visitors": 17,
+      "exposures": 20,
+      "ctr": 105.0
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型授权-授权审批",
+      "clicks": 19,
+      "visitors": 1,
+      "exposures": 19,
+      "ctr": 100.0
+    },
+    {
+      "page": "AI能力工厂-工具管理-AI话术-接口管理",
+      "clicks": 18,
+      "visitors": 11,
+      "exposures": 19,
+      "ctr": 94.74
+    },
+    {
+      "page": "AI能力工厂-工具管理-AI话术-智能话术配置管理",
+      "clicks": 16,
+      "visitors": 4,
+      "exposures": 48,
+      "ctr": 33.33
+    },
+    {
+      "page": "系统管理-系统管理-账号管理",
+      "clicks": 15,
+      "visitors": 3,
+      "exposures": 19,
+      "ctr": 78.95
+    },
+    {
+      "page": "APP灵犀-评测管理-用户评价管理",
+      "clicks": 15,
+      "visitors": 10,
+      "exposures": 11,
+      "ctr": 136.36
+    },
+    {
+      "page": "AI能力工厂-工具管理-AI话术-模板管理",
+      "clicks": 15,
+      "visitors": 8,
+      "exposures": 6,
+      "ctr": 250.0
+    },
+    {
+      "page": "APP灵犀-灵犀会话系统管理-内测白名单",
+      "clicks": 12,
+      "visitors": 3,
+      "exposures": 60,
+      "ctr": 20.0
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型授权-我的授权",
+      "clicks": 12,
+      "visitors": 10,
+      "exposures": 5,
+      "ctr": 240.0
+    },
+    {
+      "page": "APP灵犀-意图管理-意图审批管理",
+      "clicks": 12,
+      "visitors": 11,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-工具管理-AI话术-效果调试",
+      "clicks": 10,
+      "visitors": 5,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型授权-授权管理",
+      "clicks": 10,
+      "visitors": 1,
+      "exposures": 10,
+      "ctr": 100.0
+    },
+    {
+      "page": "APP灵犀-流程管理-调试号码管理",
+      "clicks": 9,
+      "visitors": 10,
+      "exposures": 5,
+      "ctr": 180.0
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型微调-参数微调_任务管理",
+      "clicks": 9,
+      "visitors": 2,
+      "exposures": 14,
+      "ctr": 64.29
+    },
+    {
+      "page": "APP灵犀-资源库管理-气泡组管理",
+      "clicks": 6,
+      "visitors": 4,
+      "exposures": 4,
+      "ctr": 150.0
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型看板-模型计费看板",
+      "clicks": 6,
+      "visitors": 2,
+      "exposures": 5,
+      "ctr": 120.0
+    },
+    {
+      "page": "APP灵犀-意图管理-意图体系",
+      "clicks": 5,
+      "visitors": 4,
+      "exposures": 8,
+      "ctr": 62.5
+    },
+    {
+      "page": "智能应用工厂-智能体监控-性能看板",
+      "clicks": 5,
+      "visitors": 3,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型管理-模型纳管",
+      "clicks": 5,
+      "visitors": 4,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-资源库管理-气泡管理",
+      "clicks": 5,
+      "visitors": 3,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-资源库管理-业务接口_旧",
+      "clicks": 4,
+      "visitors": 4,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-评测管理-回放统计",
+      "clicks": 4,
+      "visitors": 13,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "系统管理-系统管理-角色管理",
+      "clicks": 4,
+      "visitors": 1,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "智能应用工厂-运营管理-上下架管理",
+      "clicks": 4,
+      "visitors": 2,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-全屏版配置管理-渠道列表",
+      "clicks": 3,
+      "visitors": 3,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-渠道管理-首页配置管理",
+      "clicks": 3,
+      "visitors": 5,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-评测管理-数据看板",
+      "clicks": 3,
+      "visitors": 4,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据处理-数据清洗",
+      "clicks": 3,
+      "visitors": 4,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-流程管理-流程片段_旧",
+      "clicks": 2,
+      "visitors": 4,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-全屏版配置管理-关键词管理",
+      "clicks": 2,
+      "visitors": 2,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-灵犀会话系统管理-正则",
+      "clicks": 2,
+      "visitors": 1,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-工具管理-创建提示",
+      "clicks": 2,
+      "visitors": 1,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "智能应用工厂-智能体监控-SDK模型监控",
+      "clicks": 2,
+      "visitors": 3,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-流程管理-指令管理_旧",
+      "clicks": 0,
+      "visitors": 1,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "系统管理-平台监控-页面监控",
+      "clicks": 0,
+      "visitors": 3,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "系统管理-平台监控-层级管理",
+      "clicks": 0,
+      "visitors": 1,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型看板-调用统计",
+      "clicks": 0,
+      "visitors": 1,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-数据管理-数据处理-数据增强",
+      "clicks": 0,
+      "visitors": 1,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-模型管理-模型管理-模型纳管操作日志",
+      "clicks": 0,
+      "visitors": 2,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "APP灵犀-渠道管理-入口管理",
+      "clicks": 0,
+      "visitors": 3,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "AI能力工厂-工具管理-技能工具",
+      "clicks": 0,
+      "visitors": 4,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "个人探索-AI问答日志分析-AI问答日志分析",
+      "clicks": 0,
+      "visitors": 2,
+      "exposures": 0,
+      "ctr": null
+    },
+    {
+      "page": "系统管理-平台监控-统计分析",
+      "clicks": 0,
+      "visitors": 2,
+      "exposures": 16,
+      "ctr": 0.0
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "page": "alarms",
+  "owner": "羽琪",
+  "docName": "（待填）金山文档文件名",
+  "fileId": "（待填）kdocs file_id",
+  "refresh": "daily",
+  "feeds": [
+    { "domain": "alerts", "sheet": "（待填）", "range": "（待填）", "fields": ["level", "title", "desc", "time", "source"] }
+  ],
+  "note": "当前真实数据无告警明细，alerts 为空，页面显缺口说明；数据源待建设。"
+}

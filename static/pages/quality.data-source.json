@@ -1,0 +1,12 @@
+{
+  "page": "quality",
+  "owner": "赵莹",
+  "docName": "（待填）金山文档文件名",
+  "fileId": "（待填）kdocs file_id",
+  "refresh": "daily",
+  "feeds": [
+    { "domain": "centerYearRank", "sheet": "（待填）", "range": "（待填）", "fields": ["entities"] },
+    { "domain": "capability", "sheet": "（待填）", "range": "（待填）", "fields": ["yearly", "monthly"] }
+  ],
+  "note": "质效顶部整体指标卡片随顶部「时间范围/单位」筛选动态变化：全国或所选单位、所选月份实时重算；分中心排名表维持原月份/分项/省份筛选逻辑。"
+}

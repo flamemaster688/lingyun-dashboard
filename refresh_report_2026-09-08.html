@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>灵运 BI 看板 · 每日刷新报告 (2026-09-08)</title>
+<style>
+  :root{
+    --bg:#0e1726; --card:#15233b; --ink:#e7eefc; --muted:#8aa0c4;
+    --line:#24395c; --blue:#4ea1ff; --mint:#56d6c0; --warn:#ffb454; --bad:#ff6b81;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(160deg,#0b1320,#0e1726);color:var(--ink);padding:28px;line-height:1.6}
+  .wrap{max-width:920px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .status{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:600;font-size:13px}
+  .st-fail{background:rgba(255,107,129,.15);color:var(--bad);border:1px solid rgba(255,107,129,.4)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+  .card h2{font-size:15px;margin:0 0 12px;color:var(--mint);letter-spacing:.5px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600}
+  .ok{color:var(--mint)} .no{color:var(--bad)} .warn{color:var(--warn)}
+  .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:6px}
+  .box{background:#0f1b30;border:1px solid var(--line);border-radius:10px;padding:12px}
+  .box .n{font-size:22px;font-weight:700;color:var(--blue)}
+  .box .l{font-size:12px;color:var(--muted);margin-top:2px}
+  code{background:#0b1424;padding:2px 6px;border-radius:6px;color:var(--mint);font-size:12px}
+  ul{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--ink)}
+  li{margin:4px 0}
+  .note{font-size:12px;color:var(--muted);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>灵运平台 BI 看板 · 每日刷新报告</h1>
+  <div class="sub">运行时间 2026-09-08 10:13 (GMT+8) · 自动化任务 · 站点 heroic-faun-a8852b</div>
+  <span class="status st-fail">● 刷新失败</span>
+
+  <div class="card">
+    <h2>一、总体结论</h2>
+    <table>
+      <tr><th>环节</th><th>结果</th><th>说明</th></tr>
+      <tr><td>① 数据源取数（4 源）</td><td class="no">失败</td><td>kdocs 连接器本环境未连接，<code>mcp__kdocs__sheet.*</code> 工具不可用，无法拉取新数据</td></tr>
+      <tr><td>② 重建 data.js</td><td class="ok">成功</td><td>沿用 Sep 7 保留的 <code>_raw_*.csv</code> 重建（韧性规则：保留上次有效数据不中断）</td></tr>
+      <tr><td>③ Netlify 部署</td><td class="no">失败</td><td>HTTP 403 账户额度耗尽（自 08-27 持续），重试无效</td></tr>
+    </table>
+    <p class="note">⚠️ 生产站点 <code>https://heroic-faun-a8852b.netlify.app</code> 仍为旧数据；本地 <code>static/data.js</code> 已更新但未上线。</p>
+  </div>
+
+  <div class="card">
+    <h2>二、四大数据源刷新状态</h2>
+    <table>
+      <tr><th>数据源</th><th>file_id</th><th>本次状态</th></tr>
+      <tr><td>数据验证（总览/智能体/省份/能力）</td><td><code>sKSGFQ6W69M1LN3AdtCW1xc3VrBHYQQae</code></td><td class="no">未刷新</td></tr>
+      <tr><td>质效分析（分中心等效人年）</td><td><code>P8sxhdnzw9MW7M5z5TemxxWJcX2dTNF1D</code></td><td class="no">未刷新</td></tr>
+      <tr><td>平台分析（埋点·周）</td><td><code>atbL8BymF1MWRdUn3wue1xkekdEskSQYj</code></td><td class="no">未刷新</td></tr>
+      <tr><td>平台分析-月（用户级埋点）</td><td><code>e9WB6rKPh1MuxmekMsGdrxBn4VZNyGuTY</code></td><td class="no">未刷新</td></tr>
+    </table>
+    <p class="note">全部因取数工具不可用而未刷新，沿用 Sep 7 快照。</p>
+  </div>
+
+  <div class="card">
+    <h2>三、重建 data.js 关键计数（来自 Sep 7 快照）</h2>
+    <div class="kv">
+      <div class="box"><div class="n">113</div><div class="l">智能体 agents（R4=114→动态读取，非写死）</div></div>
+      <div class="box"><div class="n">33</div><div class="l">省份 provinces</div></div>
+      <div class="box"><div class="n">143</div><div class="l">埋点页 tracking</div></div>
+      <div class="box"><div class="n">7</div><div class="l">能力 capability 月</div></div>
+      <div class="box"><div class="n">13</div><div class="l">平台周 platformWeeks</div></div>
+      <div class="box"><div class="n">4</div><div class="l">平台月 platformMonthly (isSample=false)</div></div>
+    </div>
+    <p class="note">platformMonthly MAU：05月=704 / 06月=810 / 07月=746 / 08月=701（真实全量，isSample=false）。agents=113 为 Sep 7 快照，<b>非今日实时</b>。</p>
+  </div>
+
+  <div class="card">
+    <h2>四、待人工处理（阻断项）</h2>
+    <ul>
+      <li><b>取数阻断</b>：在自动化运行环境连接金山文档(kdocs)连接器，否则每日取数持续失败。</li>
+      <li><b>部署阻断</b>：Netlify 账户额度自 08-27 耗尽，需充值/恢复后重跑部署；<code>data.js</code> 已在本地就绪（11.1MB）。</li>
+      <li>本地产物路径：<code>C:/Users/赵莹/WorkBuddy/2026-08-07-14-38-17/lingyun_dashboard/static/data.js</code></li>
+    </ul>
+  </div>
+
+  <p class="note">日志见 <code>refresh_log.txt</code>（2026-09-08 10:13 一行）。</p>
+</div>
+</body>
+</html>

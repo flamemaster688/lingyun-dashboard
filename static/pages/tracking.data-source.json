@@ -1,0 +1,11 @@
+{
+  "page": "tracking",
+  "owner": "赵莹",
+  "docName": "（待填）金山文档文件名",
+  "fileId": "（待填）kdocs file_id",
+  "refresh": "daily",
+  "feeds": [
+    { "domain": "tracking", "sheet": "（待填）", "range": "（待填）", "fields": ["page", "clicks", "note"] }
+  ],
+  "note": "埋点为单周(0720-0726)快照，无月度/日拆分，时间筛选不影响此处。"
+}

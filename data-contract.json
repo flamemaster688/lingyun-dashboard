@@ -1,0 +1,91 @@
+{
+  "$schema": "灵运BI看板数据契约 v1",
+  "description": "定义 data.js（window.LINGYUN_DATA）的顶层结构，以及每个页面期望的业务域与字段。取数脚本 build/fetch-data.py 按此契约合并多份 JSON 生成 data.js。",
+  "generatedBy": "赵莹（基座负责人）",
+  "topLevelKeys": {
+    "meta": { "type": "object", "desc": "全局元信息；所有页面共享", "fields": {
+      "source": "数据来源说明", "fileUrl": "金山文档链接", "generatedAt": "生成时间",
+      "period": "统计周期（如 '2026年1-7月'）",
+      "provinces": "省份列表（31省+本部+总计，共33单位）",
+      "timeLevels": "时间层级 {months:[], weeks:[], days:[]}",
+      "units": "单位说明 {national, hq, total, note}",
+      "gaps": "数据缺口说明数组（无数据的指标在此列，页面显『/』）"
+    }},
+    "overview": { "type": "object", "desc": "数据总览业务域", "fields": {
+      "kpis": "汇总指标对象 {totalCalls,totalPersonYear,latestActiveAgents,avgCalls,peakMonth,peakCalls,yoyPersonYear}",
+      "monthly": "月度数组 [{month,calls,personYear,activeAgents}]"
+    }},
+    "agents": { "type": "array", "desc": "智能体清单", "itemFields": {
+      "name": "智能体名称", "province": "所属省份/单位", "type": "类型",
+      "monthly": "逐月等效人年 [{month, value}]", "total": "合计等效人年",
+      "_pt": "（计算视图派生）当前筛选下的人年合计"
+    }},
+    "provinces": { "type": "array", "desc": "省份分析", "itemFields": {
+      "province": "省份/单位名", "calls": "调用量", "tokens": "Token", "cost": "费用", "activeAgents": "活跃智能体数",
+      "monthlyCalls": "逐月调用量 []", "monthlyTokens": "逐月Token []", "monthlyCost": "逐月费用 []", "monthlyActive": "逐月活跃 []"
+    }},
+    "tracking": { "type": "array", "desc": "埋点/平台分析（页面点击快照）", "itemFields": {
+      "page": "页面标识", "clicks": "点击量", "note": "说明"
+    }},
+    "capability": { "type": "object", "desc": "多能力等效人年", "fields": {
+      "yearly": "年度汇总对象 {能力名: 人年}",
+      "monthly": "月度数组 [{month, 能力名: 人年, ...}]"
+    }},
+    "centerYearRank": { "type": "object", "desc": "质效：中心等效人年排名", "fields": {
+      "entities": "实体数组 [{province, name, personYear, ...}]"
+    }},
+    "alerts": { "type": "array", "desc": "告警中心（当前为空，先占位）", "itemFields": {
+      "level": "级别(info/warn/error)", "title": "标题", "desc": "描述", "time": "时间", "source": "来源"
+    }}
+  },
+  "pages": {
+    "overview": {
+      "owner": "吴超", "dataConnected": true,
+      "sourceDoc": "pages/overview.data-source.json（待填）",
+      "needs": ["meta", "overview", "capability", "agents", "provinces"],
+      "notes": "总览为全国汇总（数据源无分省明细），省份筛选不生效；模型成功率/耗时无字段→显『/』。"
+    },
+    "agents": {
+      "owner": "羽琪", "dataConnected": true,
+      "sourceDoc": "pages/agents.data-source.json（待填）",
+      "needs": ["meta", "agents", "tracking"],
+      "notes": "agents.js 还会读 V.tracking（调用量代理指标）。"
+    },
+    "tracking": {
+      "owner": "赵莹", "dataConnected": true,
+      "sourceDoc": "pages/tracking.data-source.json（待填）",
+      "needs": ["meta", "tracking"],
+      "notes": "埋点为单周(0720-0726)快照，无月度/日拆分，时间筛选不影响此处。"
+    },
+    "province": {
+      "owner": "吴超", "dataConnected": true,
+      "sourceDoc": "pages/province.data-source.json（待填）",
+      "needs": ["meta", "provinces"],
+      "notes": "排除『总计』聚合行避免重复计数。"
+    },
+    "quality": {
+      "owner": "赵莹", "dataConnected": true,
+      "sourceDoc": "pages/quality.data-source.json（待填）",
+      "needs": ["meta", "centerYearRank", "capability"],
+      "notes": "质效为全国汇总，省份筛选不生效。"
+    },
+    "alarms": {
+      "owner": "羽琪", "dataConnected": true,
+      "sourceDoc": "pages/alarms.data-source.json（待填）",
+      "needs": ["meta", "alerts"],
+      "notes": "当前真实数据无告警明细，alerts 为空，页面显缺口说明；数据源待建设。"
+    },
+    "report": {
+      "owner": "吴超", "dataConnected": false,
+      "sourceDoc": "无（功能设计页，不连数据源）",
+      "needs": [],
+      "notes": "报告生成为功能页，可引用其它页已加载的数据做汇总，但自身不声明数据源。"
+    }
+  },
+  "rules": [
+    "页面只通过 LY.data 读数据，禁止直接 fetch 金山文档（浏览器直连有 CORS+鉴权限制）。",
+    "取数由赵莹统一用 build/fetch-data.py 走 kdocs 连接器，多份 JSON 合并进单一 data.js。",
+    "无数据的指标在 meta.gaps 列出，页面显『/』而非报错。",
+    "新增/修改字段必须同步更新本契约并通知赵莹，否则取数脚本与页面会脱节。"
+  ]
+}
