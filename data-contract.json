@@ -15,10 +15,27 @@
       "kpis": "汇总指标对象 {totalCalls,totalPersonYear,latestActiveAgents,avgCalls,peakMonth,peakCalls,yoyPersonYear}",
       "monthly": "月度数组 [{month,calls,personYear,activeAgents}]"
     }},
-    "agents": { "type": "array", "desc": "智能体清单", "itemFields": {
+    "agents": { "type": "array", "desc": "智能体清单（旧 v1 等效人年结构，总览页保留使用）", "itemFields": {
       "name": "智能体名称", "province": "所属省份/单位", "type": "类型",
       "monthly": "逐月等效人年 [{month, value}]", "total": "合计等效人年",
       "_pt": "（计算视图派生）当前筛选下的人年合计"
+    }},
+    "agentMonthly": { "type": "array", "desc": "v2 智能体月度宽表（一行一个「月份×应用」记录，月份 1—8）", "itemFields": {
+      "entityId": "实体标识（appId 或 省份|名称|创建人 回退）",
+      "appId": "应用 ID（当前源表 100% 缺失，回退关联）",
+      "month": "月份（1月…8月）", "province": "省份/单位", "name": "应用名称", "type": "应用类型（智能体/工作流/对话流）",
+      "status": "应用状态（已上线/已下线，仅展示不参与口径）", "calls": "调用量",
+      "isActive": "活跃（调用>1000）", "isHot": "高热度（调用>100000）", "isHighEff": "活跃且高提效（调用>1000 且 提效>30%）",
+      "isPromo": "推广案例", "isExcellent": "优秀案例", "isBiweek": "双周优秀案例",
+      "effRatio": "提效比率（0—1）", "servicePhase": "服务环节大分类", "appScene": "应用场景小分类",
+      "tokens": "Token（仅 6 月起，之前为 null）", "modelCost": "模型计费（元，仅 6 月起）"
+    }},
+    "agentCaseCatalog": { "type": "array", "desc": "v2 案例总表（推广+双周+优秀）", "itemFields": {
+      "kinds": "案例类型数组（推广/优秀/双周优秀，可交叉）", "promoScene": "推广场景（向下填充）",
+      "province": "省份", "name": "应用名称", "monthlyPersonYear": "逐月等效人年对象"
+    }},
+    "agentLifecycle": { "type": "object", "desc": "v2 案例入选月份派生（键为 entityId）", "itemFields": {
+      "promoEntryMonth": "首次成为推广案例的月份", "excellentEntryMonth": "首次成为优秀案例的月份", "biweekEntryMonth": "首次成为双周优秀案例的月份"
     }},
     "provinces": { "type": "array", "desc": "省份分析", "itemFields": {
       "province": "省份/单位名", "calls": "调用量", "tokens": "Token", "cost": "费用", "activeAgents": "活跃智能体数",
@@ -47,9 +64,9 @@
     },
     "agents": {
       "owner": "羽琪", "dataConnected": true,
-      "sourceDoc": "pages/agents.data-source.json（待填）",
-      "needs": ["meta", "agents", "tracking"],
-      "notes": "agents.js 还会读 V.tracking（调用量代理指标）。"
+      "sourceDoc": "pages/agents.data-source.json（v2·0901-34 列）",
+      "needs": ["meta", "agentMonthly", "agentCaseCatalog", "agentLifecycle"],
+      "notes": "v2 智能体页只从 agentMonthly/agentCaseCatalog/agentLifecycle 计算，不再读 tracking 或旧 agents；月份上限由 meta.reportMonths（1—8 月）决定，基座全局筛选条对该页不注入（core.js 已跳过），页面自带月份/省份/形态筛选。"
     },
     "tracking": {
       "owner": "赵莹", "dataConnected": true,

@@ -28,7 +28,7 @@ DATA_DEV = os.path.join(STATIC, "data.dev.js")
 # 页面 -> 该页需要的业务域顶层键（与 data-contract.json / core/data.js 保持一致）
 PAGE_DOMAINS = {
     "overview": ["meta", "overview", "capability", "agents", "provinces"],
-    "agents":   ["meta", "agents", "tracking"],
+    "agents":   ["meta", "agentMonthly", "agentCaseCatalog", "agentLifecycle"],
     "tracking": ["meta", "tracking"],
     "province": ["meta", "provinces"],
     "quality":  ["meta", "centerYearRank", "capability"],
