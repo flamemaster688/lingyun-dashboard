@@ -1130,17 +1130,20 @@
   }
 
   function switchTab(tab) {
-    if (tab === currentTab) return;
     PAGE_STATE[currentTab].filter = FILTER;
     PAGE_STATE[currentTab].data = D;
-    currentTab = tab;
-    var st = PAGE_STATE[tab];
-    D = st.data || DEFAULT_DATA || {};
-    FILTER = st.filter;
-    MONTHS = (D.meta && D.meta.timeLevels && D.meta.timeLevels.months) || ["1月", "2月", "3月", "4月", "5月", "6月", "7月"];
-    NATL = (D.meta.units && D.meta.units.national) || "总计";
-    HQ = (D.meta.units && D.meta.units.hq) || "本部";
+    var isSame = (tab === currentTab);
+    if (!isSame) {
+      currentTab = tab;
+      var st = PAGE_STATE[tab];
+      D = st.data || DEFAULT_DATA || {};
+      FILTER = st.filter;
+      MONTHS = (D.meta && D.meta.timeLevels && D.meta.timeLevels.months) || ["1月", "2月", "3月", "4月", "5月", "6月", "7月"];
+      NATL = (D.meta.units && D.meta.units.national) || "总计";
+      HQ = (D.meta.units && D.meta.units.hq) || "本部";
+    }
 
+    // 切换 / 重复点击当前项 都刷新视图（修复「点当前菜单无响应」）
     document.querySelectorAll("#navMenu .nav-item").forEach(function (x) { x.classList.remove("active"); });
     var activeNav = document.querySelector('#navMenu .nav-item[data-tab="' + tab + '"]');
     if (activeNav) activeNav.classList.add("active");

@@ -1,8 +1,11 @@
 // -*- coding: utf-8 -*-
 // 合并/打包命令：node build/bundle.js
-// 把 core/core.js + 7 个 pages/*.js 合并为单文件 dist/lingyun.bundle.js，
+// 把 core/core.js + core/data.js + 8 个 pages/*.js 合并为单文件 dist/lingyun.bundle.js，
 // 并生成 dist/index.html（引用 bundle + vendor/data/style），作为「共享链接」部署产物。
 // 这样三人各自改完 pages/*.js 后，赵莹一键合并即可发布，无需手工拼文件。
+// 注意：必须与 static/index.html 的 dev 脚本块顺序保持一致；
+//   core/data.js（LY.data 适配器，agents/quality 页面只读这里）和
+//   pages/tracking-monthly.js（埋点页顶部8卡依赖其 window.PFM，导航已隐藏）都必须包含，否则线上页面取数为空/报错。
 const fs = require("fs");
 const path = require("path");
 
@@ -12,9 +15,11 @@ const DIST = path.join(ROOT, "dist");
 
 const ORDER = [
   "core/core.js",
+  "core/data.js",       // 赵莹：统一数据接口（LY.data 适配器；agents/quality 页面只读这里）
   "pages/overview.js",  // 吴超
   "pages/agents.js",    // 羽琪
   "pages/tracking.js",  // 赵莹
+  "pages/tracking-monthly.js", // 赵莹：埋点页顶部8卡依赖其 window.PFM（导航已隐藏，脚本须保留）
   "pages/province.js",  // 吴超
   "pages/quality.js",   // 赵莹
   "pages/alarms.js",    // 羽琪
