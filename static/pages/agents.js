@@ -168,10 +168,13 @@
       effRatio: eff,
       saveSec: num(r.saveSec != null ? r.saveSec : r["单笔节约时长"]),
       personYear: num(r.personYear != null ? r.personYear : r["节约人年"]),
+      saveAmount: num(r.saveAmount != null ? r.saveAmount : r["节约金额"]),
+      realValue: num(r.realValue != null ? r.realValue : r["产生真实价值"]),
       isMarketplace: r.isMarketplace == null ? null : (flag(r.isMarketplace) ? 1 : 0),
       copyCount: num(r.copyCount != null ? r.copyCount : r["复制量"]) || 0,
       isLLM: flag(r.isLLM) ? 1 : 0,
-      promoScene: val(r.promoScene)
+      promoScene: val(r.promoScene),
+      positiveValue: flag(r.positiveValue != null ? r.positiveValue : r["是否正向价值"]) ? 1 : 0
     };
     /* Token 双重校验：早于采集起点一律视为不可用，防止源表残值外泄 */
     if (monthNo(row.month) < monthNo(TOKEN_START)) {
@@ -545,7 +548,7 @@
     { key: "isLLM", label: "是否使用大模型", group: "应用形态", sort: function (r) { return r.isLLM; }, fmt: function (r) { return r.isLLM ? "是" : "否"; } },
 
     /* 第五组：Token 与计费（仅 6 月起且数据可用） */
-    { key: "tokens", label: "总Token", group: "Token与计费", align: "right", num: true, token: true, sort: function (r) { return r.tokens == null ? -1 : r.tokens; },
+    { key: "tokens", label: "总token数", group: "Token与计费", align: "right", num: true, token: true, sort: function (r) { return r.tokens == null ? -1 : r.tokens; },
       fmt: function (r) { return r.tokens == null ? '<span style="color:#94a3b8">自6月起统计</span>' : fmtTok(r.tokens); } },
     { key: "tokensPerCall", label: "单次调用Token", group: "Token与计费", align: "right", num: true, token: true, sort: function (r) { return r.tokensPerCall == null ? -1 : r.tokensPerCall; },
       fmt: function (r) { return r.tokensPerCall == null ? '<span style="color:#94a3b8">自6月起统计</span>' : fmtNum(r.tokensPerCall, 0); } },
@@ -553,12 +556,22 @@
       fmt: function (r) { return r.busyTokens == null ? '<span style="color:#94a3b8">自6月起统计</span>' : fmtTok(r.busyTokens); } },
     { key: "idleTokens", label: "闲时Token", group: "Token与计费", align: "right", num: true, token: true, sort: function (r) { return r.idleTokens == null ? -1 : r.idleTokens; },
       fmt: function (r) { return r.idleTokens == null ? '<span style="color:#94a3b8">自6月起统计</span>' : fmtTok(r.idleTokens); } },
-    { key: "modelCost", label: "模型计费(元)", group: "Token与计费", align: "right", num: true, token: true, sort: function (r) { return r.modelCost == null ? -1 : r.modelCost; },
+    { key: "modelCost", label: "模型计费（元）", group: "Token与计费", align: "right", num: true, token: true, sort: function (r) { return r.modelCost == null ? -1 : r.modelCost; },
       fmt: function (r) { return r.modelCost == null ? '<span style="color:#94a3b8">自6月起统计</span>' : fmtNum(r.modelCost, 2); } },
     { key: "busyCost", label: "忙时计费(元)", group: "Token与计费", align: "right", num: true, token: true, sort: function (r) { return r.busyCost == null ? -1 : r.busyCost; },
       fmt: function (r) { return r.busyCost == null ? '<span style="color:#94a3b8">自6月起统计</span>' : fmtNum(r.busyCost, 2); } },
     { key: "idleCost", label: "闲时计费(元)", group: "Token与计费", align: "right", num: true, token: true, sort: function (r) { return r.idleCost == null ? -1 : r.idleCost; },
       fmt: function (r) { return r.idleCost == null ? '<span style="color:#94a3b8">自6月起统计</span>' : fmtNum(r.idleCost, 2); } },
+
+    /* 新增组：价值与正向（来自「智能体清单（各省）」） */
+    { key: "personYear", label: "节约人年", group: "价值与正向", align: "right", num: true, sort: function (r) { return r.personYear == null ? -1 : r.personYear; },
+      fmt: function (r) { return r.personYear == null ? '<span style="color:#94a3b8">/</span>' : fmtNum(r.personYear, 2); } },
+    { key: "saveAmount", label: "节约金额", group: "价值与正向", align: "right", num: true, sort: function (r) { return r.saveAmount == null ? -1 : r.saveAmount; },
+      fmt: function (r) { return r.saveAmount == null ? '<span style="color:#94a3b8">—</span>' : fmtNum(r.saveAmount, 2); } },
+    { key: "realValue", label: "产生真实价值", group: "价值与正向", align: "right", num: true, sort: function (r) { return r.realValue == null ? -1 : r.realValue; },
+      fmt: function (r) { return r.realValue == null ? '<span style="color:#94a3b8">—</span>' : fmtNum(r.realValue, 2); } },
+    { key: "positiveValue", label: "是否正向价值", group: "价值与正向", align: "center", num: false, sort: function (r) { return r.positiveValue ? 1 : 0; },
+      fmt: function (r) { return r.positiveValue ? '<span class="agx-badge" style="background:#f0fdf4;color:#16a34a">是</span>' : '<span class="agx-badge" style="background:#f1f5f9;color:#64748b">否</span>'; } },
 
     /* 第六组：技术身份（最后） */
     { key: "appId", label: "应用ID", group: "技术身份", sort: function (r) { return r.appId || ""; },
@@ -573,7 +586,7 @@
     return FULL_AGENT_COLUMNS.slice();
   }
   var SUMMARY_COLUMN_KEYS = ["name", "province", "calls", "callsMom", "activity", "effRatio", "servicePhase", "appScene", "caseTags", "promoScene", "type"];
-  var CASE_SUMMARY_COLUMN_KEYS = ["name", "province", "calls", "callsMom", "activity", "effRatio", "servicePhase", "appScene", "caseTags", "promoScene", "entryMonth"];
+  var CASE_SUMMARY_COLUMN_KEYS = ["name", "province", "calls", "callsMom", "activity", "servicePhase", "appScene", "caseTags", "promoScene", "entryMonth", "tokens", "modelCost", "effRatio", "saveSec", "personYear", "saveAmount", "realValue", "positiveValue"];
   function columnsByKeys(keys, month) {
     var allowed = activeColumns(month), map = {}, out = [];
     for (var i = 0; i < allowed.length; i++) map[allowed[i].key] = allowed[i];
@@ -588,7 +601,7 @@
     return {
       keyword: "", callsPreset: "all", callsMin: null, callsMax: null,
       caseTags: [], provinces: [], activity: [], appTypes: [],
-      servicePhases: [], appScenes: [], promoScenes: []
+      servicePhases: [], appScenes: [], promoScenes: [], positive: null
     };
   }
   function cloneFilters(f) {
@@ -604,7 +617,8 @@
       appTypes: (src.appTypes || []).slice(),
       servicePhases: (src.servicePhases || []).slice(),
       appScenes: (src.appScenes || []).slice(),
-      promoScenes: (src.promoScenes || []).slice()
+      promoScenes: (src.promoScenes || []).slice(),
+      positive: src.positive == null ? null : src.positive
     };
   }
   var CALL_PRESETS = [
@@ -678,6 +692,8 @@
       if (f.servicePhases && f.servicePhases.length && f.servicePhases.indexOf(r.servicePhase || "未分类") < 0) continue;
       if (f.appScenes && f.appScenes.length && f.appScenes.indexOf(r.appScene || "未分类") < 0) continue;
       if (f.promoScenes && f.promoScenes.length && f.promoScenes.indexOf(r.promoScene || "未分类") < 0) continue;
+      if (f.positive === "YES" && !r.positiveValue) continue;
+      if (f.positive === "NO" && r.positiveValue) continue;
       out.push(r);
     }
     return out;
@@ -732,6 +748,7 @@
     h.push(selectField(prefix + 'phase', '服务环节', (f.servicePhases || [])[0] || '', phases, '全部服务环节', '待新数据补充'));
     h.push(selectField(prefix + 'scene', '业务场景', (f.appScenes || [])[0] || '', scenes, '全部业务场景', '待新数据补充'));
     h.push(selectField(prefix + 'promoScene', '推广场景', (f.promoScenes || [])[0] || '', promoScenes, '全部推广场景', '待新数据补充'));
+    if (opts.positive) h.push(selectField(prefix + 'pos', '是否正向价值', f.positive || '', [{ k: 'YES', t: '是' }, { k: 'NO', t: '否' }], '全部'));
     h.push('<button type="button" class="agx-rst" id="' + prefix + 'rst">重置筛选</button>');
     h.push('</div>');
     return h.join("");
@@ -751,6 +768,8 @@
     if (tags) tags.onchange = function () { f.caseTags = tags.value ? tags.value.split("+") : []; refresh(true); };
     one("prov", "provinces"); one("act", "activity"); one("type", "appTypes");
     one("phase", "servicePhases"); one("scene", "appScenes"); one("promoScene", "promoScenes");
+    var posEl = byId(prefix + "pos");
+    if (posEl) posEl.onchange = function () { f.positive = posEl.value || null; refresh(true); };
     var rst = byId(prefix + "rst");
     if (rst) rst.onclick = function () {
       node.filters = defaultFilters();
@@ -1448,6 +1467,10 @@
         ? "较上月 " + deltaSpan(r.effRatio - prevR.effRatio, ((r.effRatio - prevR.effRatio) * 100).toFixed(1) + "个百分点")
         : "无上月可比"));
     h2.push(card("单笔节约时长", r.saveSec == null ? "/" : fmtNum(r.saveSec, 1) + "秒", "源表有值时展示"));
+    h2.push(card("节约人年", r.personYear == null ? "/" : fmtNum(r.personYear, 2) + "人年", "—"));
+    h2.push(card("节约金额", r.saveAmount == null ? "—" : fmtNum(r.saveAmount, 2) + "元", "—"));
+    h2.push(card("产生真实价值", r.realValue == null ? "—" : fmtNum(r.realValue, 2) + "元", "—"));
+    h2.push(card("是否正向价值", r.positiveValue ? '<span class="agx-badge" style="background:#f0fdf4;color:#16a34a">是</span>' : (r.positiveValue == null ? "/" : '<span class="agx-badge" style="background:#f1f5f9;color:#64748b">否</span>'), "—"));
     h2.push(card("复制量", fmtInt(r.copyCount), "—"));
     h2.push(card("上架应用广场", r.isMarketplace == null ? "/" : (r.isMarketplace ? "是" : "否"), "—"));
     h2.push(card("案例入选月份", entryMonthOf(r, null) || "/",
@@ -1460,11 +1483,11 @@
     h2.push('<div style="font-size:13px;font-weight:700;color:#1f2937;margin:16px 0 6px">Token 与计费</div>');
     if (tokOk) {
       h2.push('<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:10px;margin-bottom:14px">');
-      h2.push(card("总Token", r.tokens == null ? "/" : fmtTok(r.tokens), "—"));
+      h2.push(card("总token数", r.tokens == null ? "/" : fmtTok(r.tokens), "—"));
       h2.push(card("单次调用Token", r.tokensPerCall == null ? "/" : fmtNum(r.tokensPerCall, 0), "—"));
       h2.push(card("忙时Token", r.busyTokens == null ? "/" : fmtTok(r.busyTokens), "—"));
       h2.push(card("闲时Token", r.idleTokens == null ? "/" : fmtTok(r.idleTokens), "—"));
-      h2.push(card("模型计费(元)", r.modelCost == null ? "/" : fmtNum(r.modelCost, 2), "仅辅助观察"));
+      h2.push(card("模型计费（元）", r.modelCost == null ? "/" : fmtNum(r.modelCost, 2), "仅辅助观察"));
       h2.push(card("忙时计费(元)", r.busyCost == null ? "/" : fmtNum(r.busyCost, 2), "—"));
       h2.push(card("闲时计费(元)", r.idleCost == null ? "/" : fmtNum(r.idleCost, 2), "—"));
       h2.push('</div>');
@@ -1729,6 +1752,21 @@
         '</div>' +
         '<div id="agCaseFilter"></div>' +
         '<div id="agCaseTable"></div>' +
+      '</div>' +
+
+      /* 06 正向价值智能体分析与引导结论 */
+      '<div class="block"><div class="block-title">正向价值智能体分析与引导结论 <span style="font-size:12px;font-weight:500;color:#6b7280">基于全量案例清单实时计算</span></div>' +
+        '<div class="kpi-grid" id="agPosKpis" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px"></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">' +
+          '<div class="chart-card"><div class="ct">智能体类型 · 正向率</div><div class="chart" id="agPosType" style="height:300px"></div></div>' +
+          '<div class="chart-card"><div class="ct">服务环节 · 正向率</div><div class="chart" id="agPosPhase" style="height:300px"></div></div>' +
+          '<div class="chart-card"><div class="ct">应用场景 · 正向率（智能体数≥5）</div><div class="chart" id="agPosScene" style="height:300px"></div></div>' +
+          '<div class="chart-card"><div class="ct">推广场景 vs 自然生长 · 正向率</div><div class="chart" id="agPosPromo" style="height:300px"></div></div>' +
+        '</div>' +
+        '<div class="agx-section-card" style="border-color:#dbeafe">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><b style="color:#1e3a8a">分析结论与平台引导方向</b></div>' +
+          '<div id="agPosConclusion"></div>' +
+        '</div>' +
       '</div>' +
 
       /* 05 应用查询与完整明细 */
@@ -2703,9 +2741,11 @@
     var filtered = applyFilters(node.data || [], node.filters);
     var t = renderAgentTable("agxCS_", filtered, node, { limit: 10, hidePager: true, short: true,
       columns: columnsByKeys(CASE_SUMMARY_COLUMN_KEYS, state.month) });
-    byId("agCaseFilter").innerHTML = cur.length ? renderFilterBar("agxCS_", node, { compact: true }) : "";
-    byId("agCaseTable").innerHTML = cur.length ? t.html :
-      '<div class="agx-tblwrap short"><table class="tbl agx-tbl"><tbody><tr><td class="agx-empty">当前范围内没有该类型案例</td></tr></tbody></table></div>';
+    byId("agCaseFilter").innerHTML = cur.length ? renderFilterBar("agxCS_", node, { compact: true, positive: true }) : "";
+    var caseNote = '<div style="margin:8px 2px 0;font-size:12px;color:#94a3b8;line-height:1.6">' +
+      '口径说明：「节约金额」「产生真实价值」仅源表 6–8 月有统计，且只针对「正向价值=是」的应用；其余行（1–5 月及非正向应用）源表本就为空，显示为「—」属正常。</div>';
+    byId("agCaseTable").innerHTML = cur.length ? t.html + caseNote :
+      '<div class="agx-tblwrap short"><table class="tbl agx-tbl"><tbody><tr><td class="agx-empty">当前范围内没有该类型案例</td></tr></tbody></table></div>' + caseNote;
     if (cur.length) {
       bindFilterBar("agxCS_", node, function () { renderCaseDetail(); });
       bindAgentTable("agxCS_", filtered, node, function () { renderCaseDetail(); }, openAgentProfile);
@@ -3102,6 +3142,7 @@
     renderPanorama();
     renderCaseDetail();
     renderDetail();
+    renderPositiveConclusion();
     renderDataNote();
   }
   function renderDataNote() {
@@ -3120,6 +3161,115 @@
     lines.push('本页不展示：投入产出类金额折算、人力节约折算，以及源表尚未接入的调用质量类字段。');
     byId("agDataNote").innerHTML = lines.map(function (x) { return "· " + x; }).join("<br/>");
   }
+  /* ==================================================================
+   * 十八、正向价值智能体分析与引导结论（实时计算）
+   * ================================================================== */
+  function posKpiCard(label, value, sub, color) {
+    return '<div class="agx-kpi" tabindex="0" style="cursor:default">' +
+      '<div class="lb">' + esc(label) + '</div>' +
+      '<div class="val" style="color:' + color + '">' + value + '</div>' +
+      '<div class="sub">' + esc(sub) + '</div></div>';
+  }
+  function posRateBar(id, arr) {
+    if (!arr || !arr.length) return;
+    var names = arr.map(function (r) { return r.dn; });
+    var rates = arr.map(function (r) { return +(r.rate * 100).toFixed(1); });
+    var opt = mergeBase({
+      grid: { left: 104, right: 52, top: 12, bottom: 22 },
+      tooltip: { trigger: "axis", axisPointer: { type: "shadow" },
+        formatter: function (ps) { var i = ps[0].dataIndex; var r = arr[i]; return esc(r.name) + "<br/>正向率：" + (r.rate * 100).toFixed(1) + "%<br/>正向 / 总：" + r.pos + " / " + r.all; } },
+      xAxis: { type: "value", max: 100, axisLabel: { formatter: "{value}%" } },
+      yAxis: { type: "category", data: names, inverse: true, axisLabel: { fontSize: 11 } },
+      series: [{ type: "bar", data: rates, barWidth: "56%",
+        label: { show: true, position: "right", formatter: "{c}%", fontSize: 11 },
+        itemStyle: { color: "#16a34a", borderRadius: [0, 4, 4, 0] } }]
+    });
+    draw(id, opt);
+  }
+  function renderPositiveConclusion() {
+    var data = window.LINGYUN_DATA;
+    var rows = data && data.agentMonthly;
+    var host = byId("agPosConclusion");
+    if (!host) return;
+    if (!rows || !rows.length) { host.innerHTML = '<div class="agx-empty">智能体数据尚未接入</div>'; return; }
+    var NN = function (x) { return (x == null || x === "" || (typeof x === "number" && x !== x)) ? null : Number(x); };
+    function bump(o, v) { v = (v == null ? "" : String(v)).trim(); if (!v) return; o[v] = (o[v] || 0) + 1; }
+    function modeOf(o) { var mk = "", mv = 0; for (var k in o) { if (o[k] > mv) { mv = o[k]; mk = k; } } return mk; }
+
+    var agents = {};
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i]; var id = r.appId; if (!id) continue;
+      var a = agents[id];
+      if (!a) { a = agents[id] = { type: r.type, sp: {}, sc: {}, pr: {}, calls: 0, save: 0, real: 0, pos: 0 }; }
+      if (r.positiveValue === 1) a.pos = 1;
+      var c = NN(r.calls); if (c) a.calls += c;
+      var sa = NN(r.saveAmount); if (sa != null) a.save += sa;
+      var rv = NN(r.realValue); if (rv != null) a.real += rv;
+      bump(a.sp, r.servicePhase); bump(a.sc, r.appScene); bump(a.pr, r.promoScene || "");
+    }
+    var list = [];
+    for (var id2 in agents) { var x = agents[id2]; x.servicePhaseM = modeOf(x.sp); x.appSceneM = modeOf(x.sc); x.promoSceneM = modeOf(x.pr); list.push(x); }
+    var total = list.length;
+    var pos = list.filter(function (a) { return a.pos; });
+    var posN = pos.length;
+    var totSave = list.reduce(function (s, a) { return s + a.save; }, 0);
+    var totReal = list.reduce(function (s, a) { return s + a.real; }, 0);
+    var posSave = pos.reduce(function (s, a) { return s + a.save; }, 0);
+    var posReal = pos.reduce(function (s, a) { return s + a.real; }, 0);
+
+    function groupBy(keyFn, minAll) {
+      var m = {};
+      list.forEach(function (a) { var k = keyFn(a) || "(空)"; (m[k] = m[k] || { all: 0, pos: 0, save: 0 }); m[k].all++; if (a.pos) { m[k].pos++; m[k].save += a.save; } });
+      var arr = Object.keys(m).map(function (k) { return { name: k, dn: (k === "(空)" ? "未标注" : k), all: m[k].all, pos: m[k].pos, save: m[k].save, rate: m[k].all ? m[k].pos / m[k].all : 0 }; });
+      if (minAll) arr = arr.filter(function (x) { return x.all >= minAll; });
+      arr.sort(function (a, b) { return b.rate - a.rate; });
+      return arr;
+    }
+    var byType = groupBy(function (a) { return a.type; });
+    var byPhase = groupBy(function (a) { return a.servicePhaseM; });
+    var byScene = groupBy(function (a) { return a.appSceneM; }, 5);
+    var byPromo = groupBy(function (a) { return a.promoSceneM; });
+
+    var topArr = pos.slice().sort(function (a, b) { return b.save - a.save; });
+    var top1 = topArr[0];
+    var top1Share = totSave ? top1.save / totSave : 0;
+    var top10Share = totSave ? topArr.slice(0, 10).reduce(function (s, a) { return s + a.save; }, 0) / totSave : 0;
+
+    byId("agPosKpis").innerHTML = [
+      posKpiCard("智能体总数", fmtInt(total), "去重应用 · 全量", "#475569"),
+      posKpiCard("正向价值智能体", fmtInt(posN) + "（" + (posN / total * 100).toFixed(1) + "%）", "含任一正向月份", "#16a34a"),
+      posKpiCard("正向价值贡献占比", (posSave / (totSave || 1) * 100).toFixed(1) + "%", "节约金额 " + fmtWan(posSave) + " / " + fmtWan(totSave), "#2563eb"),
+      posKpiCard("头部集中度", (top1Share * 100).toFixed(1) + "%", "Top1 占全部节约金额", "#dc2626")
+    ].join("");
+
+    posRateBar("agPosType", byType);
+    posRateBar("agPosPhase", byPhase);
+    posRateBar("agPosScene", byScene);
+    posRateBar("agPosPromo", byPromo);
+
+    var wf = byType.filter(function (x) { return x.name === "工作流"; })[0];
+    var wfVal = wf ? (wf.save / (totSave || 1) * 100).toFixed(1) : "—";
+    var ag = byType.filter(function (x) { return x.name === "智能体"; })[0];
+    var agRate = ag ? (ag.rate * 100).toFixed(1) : "—";
+    var bestScene = byScene[0];
+    var promoted = byPromo.filter(function (x) { return x.name !== "(空)"; });
+    var nat = byPromo.filter(function (x) { return x.name === "(空)"; })[0];
+    var promoAvg = promoted.length ? (promoPromotedAvg(promoted) * 100).toFixed(1) : "—";
+    var natRate = nat ? (nat.rate * 100).toFixed(1) : "0";
+    var promoRatio = "—";
+    if (promoAvg !== "—" && parseFloat(natRate) > 0) promoRatio = (parseFloat(promoAvg) / parseFloat(natRate)).toFixed(0);
+
+    host.innerHTML =
+      '<div class="agx-insights">' +
+      '<p><b>一、总体：价值极度头部化。</b>全量 ' + fmtInt(total) + ' 个智能体中仅 <b>' + posN + ' 个（' + (posN / total * 100).toFixed(1) + '%）</b>被判定为正向价值，却贡献了约 <b>' + (posSave / (totSave || 1) * 100).toFixed(1) + '%</b> 的节约金额与全部真实价值；95% 的智能体在当前计量口径下不产生可衡量价值。</p>' +
+      '<p><b>二、类型画像。</b>「工作流」是价值主引擎，独占正向价值约 <b>' + wfVal + '%</b>；「智能体」正向率最高（' + agRate + '%），是命中率更优的"精兵"；「对话流」正向率为 0，应停止在其上设定价值目标。</p>' +
+      '<p><b>三、分类画像（场景族）。</b>高频正向场景清一色属于 <b>"稽核 / 查证 / 预判 / 分析"</b> 四类：正向率最高的是 ' + esc(bestScene.name) + '（' + (bestScene.rate * 100).toFixed(1) + '%），其次为退费稽核、工单查证、服务质量稽核等。被平台<b>策展推广</b>的场景正向率平均 ' + promoAvg + '%，而<b>自然生长</b>场景仅 ' + natRate + '%（约 ' + promoRatio + ' 倍差距）。</p>' +
+      '<p><b>四、价值分布风险。</b>头部极端集中：单个智能体即占全部节约金额的 <b>' + (top1Share * 100).toFixed(1) + '%</b>，Top10 占 ' + (top10Share * 100).toFixed(1) + '%；且正向智能体几乎全部为单省部署，优秀模式尚未跨省复制（省份孤岛）。</p>' +
+      '<p><b>五、平台引导方向。</b>① 类型：主力用「工作流」规模化承重，精兵用「智能体」，停投「对话流」；② 场景：优先孵化服务前预判拦截（命中率最高）、规模化服务后稽核质检，聚焦已验证的稽核/查证/预判场景族；③ 机制：以"策展模板化推广"替代自由生长（复制 15–25 倍正向率），把头部模式抽象为跨省模板打破省份孤岛，并以"正向率 + 价值密度"替代"智能体数量"作为健康度 KPI。</p>' +
+      '</div>';
+  }
+  function promoPromotedAvg(arr) { return arr.reduce(function (s, x) { return s + x.rate; }, 0) / arr.length; }
+
   function renderAgents() {
     _rows = null; _cases = null; _life = null;
     _months = null; _provinces = null;

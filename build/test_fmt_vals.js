@@ -1,0 +1,25 @@
+const fs = require("fs"), path = require("path"), vm = require("vm");
+const BASE = "static";
+const files = { data: path.join(BASE,"data.js"), adapter: path.join(BASE,"core","data.js"), core: path.join(BASE,"core","core.js"), agents: path.join(BASE,"pages","agents.js") };
+const elements = {};
+function el(id){ if(!elements[id]){ const e={_h:"",set innerHTML(v){this._h=String(v);},get innerHTML(){return this._h;},set textContent(v){this._t=String(v);},get textContent(){return this._t;},style:{},classList:{add(){},remove(){},toggle(){},contains(){return false;}},setAttribute(){},getAttribute(){return null;},addEventListener(){},appendChild(){},removeChild(){},insertBefore(){},replaceChild(){},insertAdjacentHTML(){},querySelector(){return null;},querySelectorAll(){return [];},onclick:null}; e.parentNode=e; elements[id]=e;} return elements[id]; }
+const document={readyState:"complete",getElementById:(id)=>el(id),querySelector:(s)=>el("q:"+s),querySelectorAll:()=>[],createElement:(t)=>el("n:"+t),addEventListener(){},removeEventListener(){},body:el("body"),documentElement:el("html")};
+const chart={setOption(){},resize(){},dispose(){},on(){},off(){}};
+const echarts={init:()=>chart,registerMap(){},getMap:()=>null,version:"5.5.1"};
+const sandbox={window:null,document,echarts,console,setTimeout:()=>0,clearTimeout:()=>{},Math,Date,JSON,Object,Array,String,Number,Boolean,RegExp,Symbol,parseInt,parseFloat,isNaN,isFinite,addEventListener(){},removeEventListener(){}};
+sandbox.window=sandbox; vm.createContext(sandbox);
+let code = fs.readFileSync(files.agents,"utf-8");
+const last = code.lastIndexOf("})();");
+code = code.slice(0,last) + "\n;window.__T={caseRowsOf:caseRowsOf,columnsByKeys:columnsByKeys,CASE_SUMMARY_COLUMN_KEYS:CASE_SUMMARY_COLUMN_KEYS,state:state};})();";
+[files.data,files.adapter,files.core,files.agents].forEach(f=>{ if(f===files.agents) vm.runInContext(code,sandbox,{filename:f}); else vm.runInContext(fs.readFileSync(f,"utf-8"),sandbox,{filename:f}); });
+const T=sandbox.window.__T;
+T.state.month="8月";
+const rows=T.caseRowsOf("promo").concat(T.caseRowsOf("excellent")).concat(T.caseRowsOf("biweek"));
+const valued=rows.filter(r=>r.saveAmount!=null&&r.saveAmount!==0);
+console.log("8月 三类案例合计行数:",rows.length,"  其中节约金额非空:",valued.length);
+const sample=valued[0];
+const cols=T.columnsByKeys(["saveAmount","realValue"],"8月");
+const sc=cols.find(c=>c.key==="saveAmount"), rc=cols.find(c=>c.key==="realValue");
+console.log("【有值样本】",sample.name,"/",sample.province,"  正向:",sample.positiveValue);
+console.log("  节约金额 渲染:",sc.fmt(sample));
+console.log("  产生真实价值 渲染:",rc.fmt(sample));
