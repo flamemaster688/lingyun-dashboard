@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="EettvSVhfzp1rZvHoDIAC2">
+<head data-page-node-id="KQJJjF6AHjZaMSZciAQjWZ">
+  <meta charset="UTF-8" data-page-node-id="TJHdAXlnEi6QGpFmHYs7TB">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="RLM6BWkX5j3C6q5uXbpcBK">
+  <title>灵运平台 · BI 数据看板</title>
+  <link rel="stylesheet" href="style.v6.css" data-page-node-id="ST0MGzpf7cnsYlKUZJjWK1">
+  <!-- 图表库：本地优先（团队内网也能看），加载失败再回退 CDN -->
+  <script src="vendor/echarts.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js';document.head.appendChild(s);"></script>
+  <script src="vendor/china-register.js"></script><!-- 同步注册中国地图，供省份人年地图使用 -->
+  <!-- 表格解析库：本地优先，支持 CSV/Excel 上传解析 -->
+  <script src="vendor/xlsx.full.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';document.head.appendChild(s);"></script>
+  <!-- 数据已加密为 data.js.enc，由页面底部 decrypt.js 在密码校验通过后解密并注入，此处不再加载明文 -->
+</head>
+<body data-page-node-id="pyHAHgv7UB2DaxTimpcKj3">
+  <!-- 顶部：仅保留品牌 -->
+  <header class="topbar" data-page-node-id="U4bRDZ6ZFEMgXAITGSfnBU">
+    <div class="brand" title="灵运平台 BI 数据看板" data-page-node-id="u1Ax65YDrY2HwdH6g4ZRAe">
+      <span class="brand-mark" data-page-node-id="0UNCJWpZVXF6qrWKhmSsfp">Ly</span>
+      <span class="brand-text" data-page-node-id="Gn1b3ZdMTOnrFu7ZxAi2Hj">灵运 BI</span>
+    </div>
+  </header>
+
+  <div class="layout" data-page-node-id="nXQTcqWpufrhqIrtjeucXp">
+    <!-- 左侧：纯导航菜单 -->
+    <aside class="sidebar" data-page-node-id="B92r3dOa8X95tWsOfqx5eG">
+      <nav class="nav-menu" id="navMenu" data-page-node-id="FL9TSx1eJm1LqlpS3cfkbt">
+        <div class="nav-item active" data-tab="overview" data-page-node-id="KkBubgwfsbJTAJGUQ7afqQ">
+          <span class="nav-icon" data-page-node-id="lW5QcyCdkeDoAMPOU06g05">◆</span>
+          <span class="nav-text" data-page-node-id="hp32oSeDcsKdY7av4CPEl8">数据总览</span>
+        </div>
+        <div class="nav-item" data-tab="agents" data-page-node-id="pu525KyLhrsWdcT9EnpdRq">
+          <span class="nav-icon" data-page-node-id="NObDzvh9BJ6PD03Rhv2hlJ">◎</span>
+          <span class="nav-text" data-page-node-id="FNi1rNXnUlUqm4c9CF7dS1">智能体</span>
+        </div>
+        <div class="nav-item" data-tab="pages" data-page-node-id="wXymb5JqkGJnaw3b8LE7QH">
+          <span class="nav-icon" data-page-node-id="1Bg9yAq9OLf6dDtqsn5v9a">◎</span>
+          <span class="nav-text" data-page-node-id="jMcARPDsxO4wHS38XPFBEp">平台分析</span>
+        </div>
+        <!-- 平台分析(月) 页已隐藏：保留脚本(pages/tracking-monthly.js)与数据映射，埋点页顶部8卡依赖其 window.PFM；如需恢复，取消下行注释并加回初始化渲染循环即可 -->
+        <!--
+        <div class="nav-item" data-tab="pages-monthly">
+          <span class="nav-icon">◷</span>
+          <span class="nav-text">平台分析(月)</span>
+        </div>
+        -->
+        <div class="nav-item" data-tab="province" data-page-node-id="MggLnCUN5zAvpqBIZibZ9i">
+          <span class="nav-icon" data-page-node-id="AeQIAMvQkqBWjO7QxBgkJ2">◎</span>
+          <span class="nav-text" data-page-node-id="ex5vOBk6j7r7Sn9PwiSr5J">省份分析</span>
+        </div>
+        <div class="nav-item" data-tab="quality" data-page-node-id="Yz8kLYx2sn49LqlU3rJ4ly">
+          <span class="nav-icon" data-page-node-id="Ppb4RHpgw6X1Ce2uiz5Tlt">◎</span>
+          <span class="nav-text" data-page-node-id="eY0wL7L7dEnOar4ctvddFc">质效分析</span>
+        </div>
+        <div class="nav-item" data-tab="alerts" data-page-node-id="TWCE4PpFrS1ujRgBgjGPPf">
+          <span class="nav-icon" data-page-node-id="vszxVuikFnYiOmkHm4PxRc">⚠</span>
+          <span class="nav-text" data-page-node-id="0sit3NIE5TCQ1Au3iBYk5t">告警中心</span>
+        </div>
+        <div class="nav-item" data-tab="report" data-page-node-id="5691q9YFajsFdhKhg61Nks">
+          <span class="nav-icon" data-page-node-id="ACoADONjDXiZrMRhIKntTO">◈</span>
+          <span class="nav-text" data-page-node-id="mmTe1dl5m3n458OYeTcFIv">报告生成</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- 主区 -->
+    <main class="main" data-page-node-id="LYcXC6cp7uNJereORHX8JG">
+      <!-- 总览 -->
+      <section class="panel active" id="panel-overview" data-page-node-id="LlrC0BkrYOPTFmNY6QbFzh">
+        <div class="page-header" data-page-node-id="uCqB7fmEWYin3NewFy6CNM">
+          <div class="section-title" id="ovTitle" data-page-node-id="VA20Xy89OgGWVJZS9n5IGc">数据总览</div>
+          <div class="page-toolbar" data-tab="overview" data-page-node-id="J0H4w0S8994rH39Br2erWU"></div>
+        </div>
+
+        <div id="ovProvNote" data-page-node-id="OLUNE2U107a1h2BI5Gne62"></div>
+
+        <!-- 关键指标（15 张 / 4 组），由 pages/overview.js 渲染 -->
+        <div id="coreCardsArea" data-page-node-id="oTVfxalDMP0eOIALZDPRU2"></div>
+
+        <!-- 趋势动态分析卡片按指标卡点击后按需展开，由 overview.js 动态生成 -->
+        <!-- 趋势 / 应用与省份 / 成本与价值 等模块已按需求移除，仅保留关键指标模块 -->
+      </section>
+
+      <!-- 智能体 -->
+      <section class="panel" id="panel-agents" data-page-node-id="1h2UNSEmmoNiJtv8hNQtvz">
+        <div class="page-header" data-page-node-id="2z2EDE3jO900xhhYKqXjUO">
+          <div class="section-title" data-page-node-id="cjMjZrWGAvFK4hRml29liQ">智能体运营分析</div>
+          <div class="page-toolbar" data-tab="agents" data-page-node-id="uwlJm9E69Gly9CZL9Pjkrv"></div>
+        </div>
+        <!-- 本页唯一根容器：pages/agents.js 在内部自建子视图导航/筛选/内容（与 agents_preview.html 约定一致） -->
+        <div id="agRoot" data-page-node-id="s3Zly7HVtatUgUmjnbviwt"></div>
+      </section>
+
+      <!-- 平台分析（原埋点） -->
+      <section class="panel" id="panel-pages" data-page-node-id="vdJsiDMSTrVGTp8kETXcJ6">
+        <div class="page-header" data-page-node-id="QvAF3dMuhmUu0QbpiBUhYN">
+          <div class="section-title" id="pgTitle" data-page-node-id="HMwGckfQ6AsOCrAL66k8Go">平台分析（埋点）</div>
+          <div class="page-toolbar" data-tab="pages" data-page-node-id="fi7ECBKHfYeyMphd1XWh0N"></div>
+        </div>
+        <div id="pgProvNote" data-page-node-id="Or5zVGrHSQh1GksqLCNzxv"></div>
+        <div class="row-label" data-page-node-id="cRAD13SH3PiqvoHBkDKj3u">核心指标（月维度 · 点击卡片查看指标明细）</div>
+        <div class="kpi-grid kpi-4" id="pgKpi" data-page-node-id="dkVQYg89uQ0FEGDtL12VER"></div>
+        <div id="pgDrillArea" class="pfm-drill-area" style="display:none" data-page-node-id="2BNfGp7LjYXiS22ACEJQUW">
+          <div class="pfm-drill-hd" data-page-node-id="UTK32cfWhaPv1sYZgHgqFr">
+            <div class="pfm-drill-title" id="pgDrillTitle" data-page-node-id="1UujhFweaQ4Z0fyL5ezks4"></div>
+            <div class="pfm-drill-hd-right" data-page-node-id="qqYtWUEVOzzZwhqq6FNvJO">
+              <div class="pfm-drill-exports" id="pgDrillExports" data-page-node-id="MtJw2abCh4CTyN2EFA7Oka"></div>
+              <button class="pfm-drill-close" id="pgDrillClose" type="button" data-page-node-id="S3YuaQ0aQD1WyW6gBVf8RT">×</button>
+            </div>
+          </div>
+          <div class="pfm-drill-cols" data-page-node-id="E6xNGfraJrTdQwpUBJ5IMy">
+            <div class="pfm-col pfm-col-left" id="pgColLeft" data-page-node-id="8K1qDSgNQqBKhfod37pnTj"></div>
+            <div class="pfm-col pfm-col-mid" id="pgColMid" data-page-node-id="tPdTK9HtoBYaoxCVVTTW2y"></div>
+            <div class="pfm-col pfm-col-right" id="pgColRight" data-page-node-id="LP0M4dL2iPbkTV6uv0mWhs"></div>
+          </div>
+        </div>
+        <div class="conclusion" id="pgConclusion" data-page-node-id="Kl3yt7wJkAQKiPFE6rKO6x"></div>
+
+        <div class="block" data-page-node-id="brHKK9Ro7zDFziRMDpluq2">
+          <div class="block-title" data-page-node-id="2GEJoOScn6S8S2aPLPUOMG">一、总体趋势（点击 / 访客 / 曝光 / 转化率）</div>
+          <div class="chart-card" data-page-node-id="W7l28ZAr0izDWKtIMy81V3">
+            <div class="ct" id="pgTrendCt" data-page-node-id="vwIqJC7LA0SCeByGwA0AFI">各周 点击量 / 访客 / 曝光 / 转化率 趋势</div>
+            <div class="chart" id="pgTrend" data-page-node-id="eZqky3lTaYg2ZEXlQF9t9S"></div>
+          </div>
+          <div id="pgTrendAn" data-page-node-id="spAPrjrOsWDgWUZVgigdoZ"></div>
+          <div id="pgTrendDrill" class="drill-wrap" data-page-node-id="AyTjDGoGUQEm07MuhmcIRY"></div>
+        </div>
+
+        <div class="block" data-page-node-id="u1vxBt4dhsqiDrmBeO2qWL">
+          <div class="block-title" data-page-node-id="Tr7yBJzpdUOQ4ILImhdDqg">二、平台菜单结构（模块点击占比与二/三/四级菜单 TOP15）</div>
+          <div class="row-2" data-page-node-id="aVLkBHxNW0zSDJpByLZaJA">
+            <div class="chart-card" data-page-node-id="SRn1ChbeuLgcBf9HNNripi">
+              <div class="ct" data-page-node-id="5vIFVAJwD1ygZieNpDgLLX">模块点击占比</div>
+              <div class="chart" id="pgMenuPie" data-page-node-id="pkjeUeBayRBhNLml65rVrg"></div>
+            </div>
+            <div class="chart-card">
+              <div class="ct">四级菜单点击量 TOP15</div>
+              <div class="chart" id="pgMenuL4"></div>
+            </div>
+          </div>
+          <div class="row-2" data-page-node-id="Wd7LGCBJmBwKbtDzeBYJS3">
+            <div class="chart-card" data-page-node-id="VWDDDnWhmdeeBedhvHGBBx">
+              <div class="ct" data-page-node-id="sctF4g4wlZld7yA7NHQdJ6">二级菜单点击量 TOP15</div>
+              <div class="chart" id="pgMenuL2" data-page-node-id="vuLFnPmbAhpTjfwsI6u4EO"></div>
+            </div>
+            <div class="chart-card" data-page-node-id="Te8yTCAVSAAQofckV8DqFm">
+              <div class="ct" data-page-node-id="Zvhq0rSTKc3NUQDGLHVwia">三级菜单点击量 TOP15</div>
+              <div class="chart" id="pgMenuL3" data-page-node-id="1J5GyDtUbHDCiWOm72YPYc"></div>
+            </div>
+          </div>
+          <div id="pgMenuAn" data-page-node-id="Kib3Erp992ccynDp5SMgLf"></div>
+          <div id="pgMenuL23An" data-page-node-id="3RtfP7E1NU5nrxfmUrsALY"></div>
+        </div>
+
+        <div class="block" id="pgModBlock" data-page-node-id="jh4PX2tM1kHxMw31p22zcT">
+          <div class="block-title" data-page-node-id="XxxpgnmdZ2Pr4JCQRI7Ivo">三、模块专项分析（标注 / 灵犀 / 各一级模块 · 用下方筛选键切换）</div>
+          <div class="chips" id="pgModTabs" data-page-node-id="xaOAcU6w4YbMAQvREXwpII"></div>
+          <div id="pgModDeep" data-page-node-id="teCdvwaGoJ6pXOowe9hayK"></div>
+        </div>
+
+        <div class="block" data-page-node-id="LehXJplq3FAz3sIfkiL7ye">
+          <div class="block-title" data-page-node-id="4zjBYEtQPKH8dmfZNa8h6N">四、页面维度（全站页面 TOP15）</div>
+          <div class="chart-card" data-page-node-id="Gh7EPTtGzHMv6FPwbuUQBv">
+            <div class="ct" data-page-node-id="ZV1FCOUvxIg7mXryE6tFw7">页面点击量 TOP15（PV）</div>
+            <div class="chart" id="pgRank" data-page-node-id="jblALvfbEQoVopMRAWtj7w"></div>
+          </div>
+          <div id="pgPageAn" data-page-node-id="6bWIwPkn4WeGGxprN8xE4y"></div>
+        </div>
+
+        <div class="block" data-page-node-id="PeEyVJ6yC2C4QJ4wSgBamK">
+          <div class="block-title" data-page-node-id="jIPwC1pgEnvtvHRnddU6kI">五、省份维度（点击量 TOP15）</div>
+          <div class="chart-card" data-page-node-id="VaO6wWwAK5I2BWbxtG4VE9">
+            <div class="ct" data-page-node-id="tabNvJkMr57sEkrr8B4xAJ">省份点击量 TOP15</div>
+            <div class="chart" id="pgProvRank" data-page-node-id="vhCykb9bOzGfDmvnVtA9ZD"></div>
+          </div>
+          <div id="pgProvAn" data-page-node-id="qNFIHAAEKt5oyNLPNLsE5s"></div>
+        </div>
+
+        <div class="block" data-page-node-id="N0XtlIsKiLtLfQeqnyluum">
+          <div class="block-title" data-page-node-id="icqYMsaJkQYAeStAxIpyDN">六、省份 × 模块交叉（点击量热力）</div>
+          <div class="chart-card" data-page-node-id="BHIDP8KGq6sed0lSzQxZro">
+            <div class="ct" id="pgCrossCt" data-page-node-id="ZavmzJJmxYfTyis1nyNJXA">Top 省份 × Top 模块 点击量分布</div>
+            <div class="chart" id="pgCross" data-page-node-id="BddsXCjHTxGDpOeTLhaFPW"></div>
+          </div>
+          <div id="pgCrossAn" data-page-node-id="ztU11MKLALcjK6E8aCxyCN"></div>
+        </div>
+
+        <div id="pgInsight" data-page-node-id="FvkyaVKfNScfDjBiki9d7s"></div>
+      </section>
+
+      <!-- 平台分析（月度） -->
+      <section class="panel" id="panel-pages-monthly" data-page-node-id="EeR1u0YJXL3QpFXAa7q7Ga">
+        <div class="page-header" data-page-node-id="fNfZoUb2VwUFccPUhGk30X">
+          <div class="section-title" id="pfmTitle" data-page-node-id="I7R3ZHenmMgFWgr6BAEU1d">平台分析（月度）</div>
+          <div class="page-toolbar" data-tab="pages-monthly" data-page-node-id="VElizVgOpsHm1A0rdtzSUW"></div>
+        </div>
+        <div id="pfmProvNote" data-page-node-id="rDGDqFDCbmJTgUMjaiPHgn"></div>
+        <div class="row-label" data-page-node-id="fyKVnSLKrwuUwCyEuOAmxM">核心指标（月维度 · 点击卡片下钻 6 类面板）</div>
+        <div class="kpi-grid kpi-4" id="pfmKpi" data-page-node-id="M0z32Io6dJxY6R4KcjZT2f"></div>
+        <div id="pfmDrillArea" class="pfm-drill-area" style="display:none" data-page-node-id="VOq2aDYFPpEGuBV3zfSXEP">
+          <div class="pfm-drill-hd" data-page-node-id="UWI8AsASIqF1m5Ll6E3YLN">
+            <div class="pfm-drill-title" id="pfmDrillTitle" data-page-node-id="GLthQydOOWT5SYbRhSB70O"></div>
+            <div class="pfm-drill-hd-right" data-page-node-id="Uic1ieqAGrRgFnJnUkbmkj">
+              <div class="pfm-drill-exports" id="pfmDrillExports" data-page-node-id="M7Gnaq780moiTgJbmzO5VF"></div>
+              <button class="pfm-drill-close" id="pfmDrillClose" type="button" data-page-node-id="zgWRKQX1L4EGItlzeQl15X">×</button>
+            </div>
+          </div>
+          <div class="pfm-drill-cols" data-page-node-id="J6hl8P8zKovUSFrbBzLC3j">
+            <div class="pfm-col pfm-col-left" id="pfmColLeft" data-page-node-id="nstNfonRepj0LX8ORB7Bz4"></div>
+            <div class="pfm-col pfm-col-mid" id="pfmColMid" data-page-node-id="Q9GrPRJS5FNIz1JdKiSsW0"></div>
+            <div class="pfm-col pfm-col-right" id="pfmColRight" data-page-node-id="IJIJkFkYSHaCLL3jUb4SFH"></div>
+          </div>
+        </div>
+        <div class="block" data-page-node-id="hUuLAiTunA7SbB5dW1wFb1">
+          <div class="block-title" data-page-node-id="Ycy98nzE6fsZXHdaE5XigG">月度趋势（曝光 / 点击 / 访客 / 打开率 / 页面活跃率）</div>
+          <div class="chart-card" data-page-node-id="XDsPTtGxWErARF28kTtvh8">
+            <div class="ct" id="pfmTrendCt" data-page-node-id="i7CKS0yBE8zW7mbdAlsxOO">各月趋势</div>
+            <div class="chart" id="pfmTrend" data-page-node-id="8l4VUZUtcE2z9ZfENJoSyG"></div>
+          </div>
+          <div id="pfmTrendAn" data-page-node-id="oBBFiwk2R87V3723vujDaf"></div>
+        </div>
+        <div class="block" data-page-node-id="ynBqDTOTY5mtMrQxVlNXX1">
+          <div class="block-title" data-page-node-id="P5PWvg7QyzqRcf31oVAgoE">模块维度（6 个一级模块 · 可下钻 二级 / 三级，每层 点击/访客/曝光）</div>
+          <div id="pfmModTree" data-page-node-id="8z0FgCsAnstemiSEgnTRqB"></div>
+          <div id="pfmModAn" data-page-node-id="miQol2jKS582Rv84sfUwrb"></div>
+        </div>
+        <div class="block" id="pfmHealthBlock" data-page-node-id="AHuDecvnXlZ2uRp8XYonfL">
+          <div class="block-title" data-page-node-id="3BKtwlQIdTdcu8dFxctHG3">三级功能页资产与埋点明细台账</div>
+          <div id="pfmHealth" data-page-node-id="tg1Wew88zbLUGCuwifdPD7"></div>
+        </div>
+        <div id="pfmInsight" data-page-node-id="T5LTmlwtwVqZKoztFyaMxx"></div>
+      </section>
+
+      <!-- 省份 -->
+      <section class="panel" id="panel-province" data-page-node-id="hUJt0umNisKLtuAamVc0eF">
+        <div class="page-header" data-page-node-id="S6L8VUZovjUvBrZZqKH8hx">
+          <div class="section-title" id="prTitle" data-page-node-id="u12VEmw6ymijIk5gCgzCS0">省份分析</div>
+          <div class="page-toolbar" data-tab="province" data-page-node-id="5XKp7vPPZ1iUrBaRbqt3vI"></div>
+        </div>
+        <div class="chart-card" data-page-node-id="Fo0oHATaBVrevG7WaQAFHP">
+          <div class="ct" data-page-node-id="6OPZRhckJpOSDPnZsRLACZ">省份调用量 TOP15</div>
+          <div class="chart" id="prRank" data-page-node-id="LiibCTJij7OIgk269cNKG7"></div>
+        </div>
+        <div class="chart-card" data-page-node-id="L8lYJTfcfSDCeqTtjiC3SR">
+          <div class="ct" data-page-node-id="rncTdZ89lDgZiCJpnMmJ4l">省份 Token 消耗 TOP15</div>
+          <div class="chart" id="prToken" data-page-node-id="G7CRVREGcTuRy3ZhzWbd2q"></div>
+        </div>
+        <div class="chart-card" data-page-node-id="FpEs2r7VhGPYA4vdCLSo51">
+          <div class="ct" data-page-node-id="ysVNR0bC2vHUSiOPeQl2vD">省份明细（按所选周期）</div>
+          <div style="overflow:auto" data-page-node-id="sHrMvDfag63xpkNYtmuFUg"><table class="tbl" id="prTable" data-page-node-id="aT7IKLkm6O5ljNsT8MpsTZ"></table></div>
+        </div>
+        <div id="prInsight" data-page-node-id="yvApJ8HyXf1tSdBI7zE803"></div>
+      </section>
+
+      <!-- 质效 -->
+      <section class="panel" id="panel-quality" data-page-node-id="AUdWYFFjfNDYG4yGiMdKMS">
+        <div class="page-header" data-page-node-id="ZTnCY3bSng65CiIC4qpIoR">
+          <div class="section-title" id="qeTitle" data-page-node-id="Or4gW08vpyPjFm5rJ9Z9BV">多能力等效人年（量质构效）</div>
+          <div class="page-toolbar" data-tab="quality" data-page-node-id="uWTujOu6G5JjPGREqYdIZZ"></div>
+        </div>
+        <div id="qeProvNote" data-page-node-id="tFGiF4h26dvolTum914C0d"></div>
+        <div class="kpi-grid" id="qeYear" data-page-node-id="30bdzc0oHGcL52AH1KSXjF"></div>
+        <div class="chart-card" data-page-node-id="ihX1mFBrkJrHNx144qfvvO">
+          <div class="ct" data-page-node-id="G76ed3tMn1G4rVldyaRqK2">各能力月度等效人年趋势</div>
+          <div class="chart" id="qeChart" data-page-node-id="1EEqB6l2ibHqVaB4bMxbfR"></div>
+        </div>
+
+        <!-- 分中心等效人年排名 -->
+        <div class="block" id="centerRankBlock" data-page-node-id="Bh2OTD7rsuTHLr3sW3xII1">
+          <div class="block-title flex-between" data-page-node-id="JsHFSQwOn6CSYwlWEETSA3">
+            <span data-page-node-id="NxO5zEFtMleYWdJul8Y7Xq">31 个分中心等效人年排名与得分</span>
+            <button class="btn btn-ghost sm" id="btnDownloadCenterRank" type="button" data-page-node-id="mJ8ysuwYR0dVBZNu3xvtNQ">⬇ 下载表格</button>
+          </div>
+          <div class="hint" id="centerRankPeriod" data-page-node-id="Pwg6XhtEeWlXXG5cfz6jW0"></div>
+
+          <div class="cr-filters" data-page-node-id="8PyLQXTRnrY6bhftrTnC1i">
+            <div class="cr-fg" data-page-node-id="VV5eoRF2Ohy4DaM9jGVqMK">
+              <div class="cr-fg-title" data-page-node-id="ivpDTs4jKqjlaGAprqDaxR">月份（勾选 1 个月或 n 个月，对比 2026 与 2025 同期）</div>
+              <div class="chips" id="centerRankMonthFilter" data-page-node-id="eK11dV3fsz5mmO20titcyx"></div>
+            </div>
+            <div class="cr-fg" data-page-node-id="KOK6Ck7p98smmiRQOqaiYE">
+              <div class="cr-fg-title" data-page-node-id="0AxmszuP2zFWXPI8t9J5yQ">分项（纳入等效人年合计，可勾选 1 项到多项）</div>
+              <div class="chips" id="centerRankAbilityFilter" data-page-node-id="UEiTFn8edEb9kEuMPNQRD6"></div>
+            </div>
+            <div class="cr-fg" data-page-node-id="j0o44OcsYus6Z2zGz1Tt8U">
+              <div class="cr-fg-title" data-page-node-id="ByqhAmkBFooTxox6tkQJ2v">省份（31 分中心 + 本部 + 全国）</div>
+              <div class="chips cr-provs" id="centerRankProvFilter" data-page-node-id="kvLA5XkSjHpBEECuaaTHNr"></div>
+            </div>
+          </div>
+
+          <div style="overflow:auto" data-page-node-id="GmzI7TUqTqJUOADyywj15i">
+            <table class="tbl rank-tbl" id="centerRankTable" data-page-node-id="eaRGqkopRnaDXdl2O6PfjH"></table>
+          </div>
+          <div id="centerRankInsight" data-page-node-id="960EhsHf1eOwKBEIciAh9E"></div>
+        </div>
+
+        <div id="qeInsight" data-page-node-id="hiyYUavWTIkk5tA79GjlfC"></div>
+      </section>
+
+      <!-- 告警中心 -->
+      <section class="panel" id="panel-alerts" data-page-node-id="vVRxCItrTimNd0gFMTMuur">
+        <div class="page-header" data-page-node-id="8Bh9vDiXV2REe3kkRe2VnR">
+          <div class="section-title" data-page-node-id="wCoKpmP8OznBin3ppTMxfu">告警中心</div>
+          <div class="page-toolbar" data-tab="alerts" data-page-node-id="7xmUAxYs6UCk7ABHDq1hmj"></div>
+        </div>
+        <div class="hint" id="alProvNote" data-page-node-id="ZmEfph4TTYZi8ByAC8rKDY"></div>
+        <div id="alList" data-page-node-id="WgpUnBlbaPOWZocY1ZhQbJ"></div>
+      </section>
+
+      <!-- 报告 -->
+      <section class="panel" id="panel-report" data-page-node-id="IAdrn8nvkKSSDxZRKdhC1k">
+        <div class="page-header" data-page-node-id="WwgOaf86s7gpSCExjrQJU8">
+          <div class="section-title" data-page-node-id="H7xSDhPmfPaCHOXl63qGE8">报告生成</div>
+          <div class="page-toolbar" data-tab="report" data-page-node-id="JjPrYS5RwgrD9leox5xkuH"></div>
+        </div>
+        <div class="report-actions" data-page-node-id="5jpDyZUkOYDNCvBoPEnA2Y">
+          <select id="reportType" data-page-node-id="djGisBeV9gRECuZUbFPBQk">
+            <option value="monthly" data-page-node-id="09bJBKD7Dfw4dhVk24cHVI">月度经营报告</option>
+            <option value="leader" data-page-node-id="VDz8m3Of9g3rsyS34otUnF">领导汇报精简版</option>
+            <option value="branch" data-page-node-id="4U2G8BgDhL3Y5tTmI5Bp31">分中心下发通报</option>
+          </select>
+          <button class="btn btn-primary" id="btnGen" data-page-node-id="0UJI3tflvuWKVgKeWMlY52">生成报告</button>
+          <button class="btn btn-ghost" id="btnDownload" data-page-node-id="ObA2707yAoTZR8H90k2GAA">下载报告（.md）</button>
+        </div>
+        <div class="report-box" id="reportBox" data-page-node-id="3tjiFueeuBxjQqLEQ3iwk4">点击「生成报告」即可基于当前筛选产出结论。</div>
+      </section>
+
+    </main>
+  </div>
+
+    <!-- 共享内核（已加密保护，由 decrypt.js 解密后动态加载） -->
+  <script>
+    window.__DASH_SCRIPTS__ = ["lingyun.bundle.js"];
+  </script>
+  <script src="decrypt.js"></script>
+</body>
+</html>
