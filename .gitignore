@@ -25,6 +25,12 @@ __pycache__/
 venv/
 env/
 
+# ===== 真实业务数据源（明文敏感，离线本地用，绝不进共享仓库）=====
+build/sources/用户行为记录.xlsx
+build/sources/质效分析.xlsx
+build/sources/【合】灵运BI重要数据（终版）.xlsx
+build/sources/【合】灵运BI重要数据（终版） (1).xlsx
+
 # ===== 私有工作区（个人记忆/自动化状态，不进共享仓库）=====
 .workbuddy/
 

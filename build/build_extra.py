@@ -5,9 +5,12 @@
 import json, re, os
 import openpyxl
 
-OLD_DATA = "/Users/mac/Projects/lingyun-bi/static/data.js"
-BEHAVIOR_XLSX = "/Users/mac/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/wxid_1fce5srquqzz21_dacf/temp/drag/用户行为记录(1)(1).xlsx"
-QE_XLSX = "/Users/mac/Downloads/质效分析.xlsx"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC = os.path.join(ROOT, "static")
+SRC = os.path.join(ROOT, "build", "sources")
+OLD_DATA = os.path.join(STATIC, "data.js")
+BEHAVIOR_XLSX = os.path.join(SRC, "用户行为记录.xlsx")
+QE_XLSX = os.path.join(SRC, "质效分析.xlsx")
 
 def s(v): return "" if v is None else str(v).strip()
 def num(v):
@@ -253,7 +256,7 @@ qeMonthlySummary = {
     "total4": qe_total4,
     "cumTotal": qe_cum,
     "yearTotal": yearTotal,
-    "source": "金山文档·质效分析 sheet3「数据月度汇总」",
+    "source": "灵运BI·质效分析（离线Excel）sheet3「数据月度汇总」",
 }
 print("  qeMonthlySummary: months=%d abilities=%s" % (len(qe_months), [a["key"] for a in qe_abilities]))
 wb2.close()

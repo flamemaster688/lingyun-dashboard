@@ -14,7 +14,7 @@ import os
 import re
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = "/Users/mac/Downloads/【合】灵运BI重要数据（终版） (1).xlsx"
+SRC = os.path.join(BASE, "build", "sources", "【合】灵运BI重要数据（终版） (1).xlsx")
 OUT = os.path.join(BASE, "build", "province_list_newfields.json")
 
 REPORT_MONTHS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月"]

@@ -15,7 +15,8 @@ import openpyxl
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC = os.path.join(ROOT, "static")
 OLD_DATA = os.path.join(STATIC, "data.js")
-XLSX = "/Users/mac/Downloads/【合】灵运BI重要数据（终版）.xlsx"
+SRC = os.path.join(ROOT, "build", "sources")
+XLSX = os.path.join(SRC, "【合】灵运BI重要数据（终版）.xlsx")
 OUT = OLD_DATA
 
 MONTH_ORDER = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
