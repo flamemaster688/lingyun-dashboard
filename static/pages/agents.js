@@ -1758,9 +1758,9 @@
       '<div class="block"><div class="block-title">正向价值智能体分析与引导结论 <span style="font-size:12px;font-weight:500;color:#6b7280">基于全量案例清单实时计算</span></div>' +
         '<div class="kpi-grid" id="agPosKpis" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px"></div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">' +
-          '<div class="chart-card"><div class="ct">智能体类型 · 正向率</div><div class="chart" id="agPosType" style="height:300px"></div></div>' +
-          '<div class="chart-card"><div class="ct">服务环节 · 正向率</div><div class="chart" id="agPosPhase" style="height:300px"></div></div>' +
-          '<div class="chart-card"><div class="ct">应用场景 · 正向率（智能体数≥5）</div><div class="chart" id="agPosScene" style="height:300px"></div></div>' +
+          '<div class="chart-card"><div class="ct">服务类型（服务环节）· 正向率</div><div class="chart" id="agPosType" style="height:300px"></div></div>' +
+          '<div class="chart-card"><div class="ct">应用场景（小分类）· 正向率（智能体数≥5）</div><div class="chart" id="agPosPhase" style="height:300px"></div></div>' +
+          '<div class="chart-card"><div class="ct">智能体名称 TOP · 正向率（按节约金额）</div><div class="chart" id="agPosScene" style="height:300px"></div></div>' +
           '<div class="chart-card"><div class="ct">推广场景 vs 自然生长 · 正向率</div><div class="chart" id="agPosPromo" style="height:300px"></div></div>' +
         '</div>' +
         '<div class="agx-section-card" style="border-color:#dbeafe">' +
@@ -3200,7 +3200,7 @@
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i]; var id = r.appId; if (!id) continue;
       var a = agents[id];
-      if (!a) { a = agents[id] = { type: r.type, sp: {}, sc: {}, pr: {}, calls: 0, save: 0, real: 0, pos: 0 }; }
+      if (!a) { a = agents[id] = { name: r.name, type: r.type, sp: {}, sc: {}, pr: {}, calls: 0, save: 0, real: 0, pos: 0 }; }
       if (r.positiveValue === 1) a.pos = 1;
       var c = NN(r.calls); if (c) a.calls += c;
       var sa = NN(r.saveAmount); if (sa != null) a.save += sa;
@@ -3230,6 +3230,18 @@
     var byScene = groupBy(function (a) { return a.appSceneM; }, 5);
     var byPromo = groupBy(function (a) { return a.promoSceneM; });
 
+    var nameMap = {};
+    list.forEach(function (a) {
+      var k = a.name || "(未命名)";
+      if (!nameMap[k]) nameMap[k] = { name: k, dn: k, all: 0, pos: 0, save: 0 };
+      nameMap[k].all++; if (a.pos) nameMap[k].pos++;
+      nameMap[k].save += a.save;
+    });
+    var byNameTop = Object.keys(nameMap).map(function (k) {
+      var o = nameMap[k];
+      return { name: o.name, dn: (o.name.length > 14 ? o.name.slice(0, 13) + "…" : o.name), all: o.all, pos: o.pos, save: o.save, rate: o.all ? o.pos / o.all : 0 };
+    }).sort(function (a, b) { return b.save - a.save; }).slice(0, 12);
+
     var topArr = pos.slice().sort(function (a, b) { return b.save - a.save; });
     var top1 = topArr[0];
     var top1Share = totSave ? top1.save / totSave : 0;
@@ -3242,9 +3254,9 @@
       posKpiCard("头部集中度", (top1Share * 100).toFixed(1) + "%", "Top1 占全部节约金额", "#dc2626")
     ].join("");
 
-    posRateBar("agPosType", byType);
-    posRateBar("agPosPhase", byPhase);
-    posRateBar("agPosScene", byScene);
+    posRateBar("agPosType", byPhase);
+    posRateBar("agPosPhase", byScene);
+    posRateBar("agPosScene", byNameTop);
     posRateBar("agPosPromo", byPromo);
 
     var wf = byType.filter(function (x) { return x.name === "工作流"; })[0];
@@ -3252,6 +3264,7 @@
     var ag = byType.filter(function (x) { return x.name === "智能体"; })[0];
     var agRate = ag ? (ag.rate * 100).toFixed(1) : "—";
     var bestScene = byScene[0];
+    var bestPhase = byPhase[0];
     var promoted = byPromo.filter(function (x) { return x.name !== "(空)"; });
     var nat = byPromo.filter(function (x) { return x.name === "(空)"; })[0];
     var promoAvg = promoted.length ? (promoPromotedAvg(promoted) * 100).toFixed(1) : "—";
@@ -3263,7 +3276,7 @@
       '<div class="agx-insights">' +
       '<p><b>一、总体：价值极度头部化。</b>全量 ' + fmtInt(total) + ' 个智能体中仅 <b>' + posN + ' 个（' + (posN / total * 100).toFixed(1) + '%）</b>被判定为正向价值，却贡献了约 <b>' + (posSave / (totSave || 1) * 100).toFixed(1) + '%</b> 的节约金额与全部真实价值；95% 的智能体在当前计量口径下不产生可衡量价值。</p>' +
       '<p><b>二、类型画像。</b>「工作流」是价值主引擎，独占正向价值约 <b>' + wfVal + '%</b>；「智能体」正向率最高（' + agRate + '%），是命中率更优的"精兵"；「对话流」正向率为 0，应停止在其上设定价值目标。</p>' +
-      '<p><b>三、分类画像（场景族）。</b>高频正向场景清一色属于 <b>"稽核 / 查证 / 预判 / 分析"</b> 四类：正向率最高的是 ' + esc(bestScene.name) + '（' + (bestScene.rate * 100).toFixed(1) + '%），其次为退费稽核、工单查证、服务质量稽核等。被平台<b>策展推广</b>的场景正向率平均 ' + promoAvg + '%，而<b>自然生长</b>场景仅 ' + natRate + '%（约 ' + promoRatio + ' 倍差距）。</p>' +
+      '<p><b>三、分类画像（服务类型 + 场景族）。</b>按服务环节看，正向率最高的是 <b>' + esc(bestPhase.name) + '（' + (bestPhase.rate * 100).toFixed(1) + '%）</b>，其次为服务中、服务后；高频正向场景清一色属于 <b>"稽核 / 查证 / 预判 / 分析"</b> 四类：正向率最高的是 ' + esc(bestScene.name) + '（' + (bestScene.rate * 100).toFixed(1) + '%），其次为退费稽核、工单查证、服务质量稽核等。被平台<b>策展推广</b>的场景正向率平均 ' + promoAvg + '%，而<b>自然生长</b>场景仅 ' + natRate + '%（约 ' + promoRatio + ' 倍差距）。</p>' +
       '<p><b>四、价值分布风险。</b>头部极端集中：单个智能体即占全部节约金额的 <b>' + (top1Share * 100).toFixed(1) + '%</b>，Top10 占 ' + (top10Share * 100).toFixed(1) + '%；且正向智能体几乎全部为单省部署，优秀模式尚未跨省复制（省份孤岛）。</p>' +
       '<p><b>五、平台引导方向。</b>① 类型：主力用「工作流」规模化承重，精兵用「智能体」，停投「对话流」；② 场景：优先孵化服务前预判拦截（命中率最高）、规模化服务后稽核质检，聚焦已验证的稽核/查证/预判场景族；③ 机制：以"策展模板化推广"替代自由生长（复制 15–25 倍正向率），把头部模式抽象为跨省模板打破省份孤岛，并以"正向率 + 价值密度"替代"智能体数量"作为健康度 KPI。</p>' +
       '</div>';

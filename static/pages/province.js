@@ -44,7 +44,7 @@ function renderProvince() {
           return "<tr><td>" + dash(p.province) + "</td><td>" + fmtWan(p._calls) + "</td><td>" + dash(p._active) +
             "</td><td>" + fmtWan(p._tokens) + "</td><td>" + fmtMoney(p._cost) + "</td></tr>";
         }).join("");
-        tb.innerHTML = '<thead><tr><th>省份</th><th>调用量(' + (FILTER.months.length ? V.flags.periodLabel : "1-7月") + ')</th><th>活跃智能体(期末月)</th><th>Token(1-6月)</th><th>模型计费(1-6月)</th></tr></thead><tbody>' + (rows || '<tr><td colspan="5">无数据</td></tr>') + "</tbody>";
+        tb.innerHTML = '<thead><tr><th>省份</th><th>调用量(' + (FILTER.months.length ? V.flags.periodLabel : "全周期") + ')</th><th>活跃智能体(期末月)</th><th>Token(月度)</th><th>模型计费(月度)</th></tr></thead><tbody>' + (rows || '<tr><td colspan="5">无数据</td></tr>') + "</tbody>";
       }
       insightBox("prInsight",
         "当前" + (FILTER.prov.length && FILTER.prov.indexOf("全国") < 0 ? "已选 " + FILTER.prov.length + " 个单位" : "全国") + "，调用量最高的省份为 <b>" +
