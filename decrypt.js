@@ -199,7 +199,12 @@
       var salt = u.subarray(off, off + saltLen); off += saltLen;
       var iv = u.subarray(off, off + ivLen); off += ivLen;
       var tag = u.subarray(off, off + tagLen); off += tagLen;
-      var ct = u.subarray(off); // 密文 + authTag（Web Crypto 约定拼在尾部）
+      var ct = u.subarray(off); // 密文（tag 已单独取出）
+      // 重要：浏览器 Web Crypto 没有 setAuthTag，要求 authTag 必须拼在密文尾部一起传入；
+      // 而加密文件格式把 tag 单独放在密文之前，因此这里必须手动拼接回去，否则校验永远失败。
+      var ctWithTag = new Uint8Array(ct.length + tag.length);
+      ctWithTag.set(ct, 0);
+      ctWithTag.set(tag, ct.length);
 
       setMsg("解密中…", false);
       setProgress(null);
@@ -215,7 +220,7 @@
           );
         })
         .then(function (key) {
-          return window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, ct);
+          return window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, ctWithTag);
         })
         .then(function (plainBuf) {
           var bytes = (comp === 1) ? null : new Uint8Array(plainBuf);
