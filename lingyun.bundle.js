@@ -8259,9 +8259,16 @@
 
   /* ---------- 主渲染 ---------- */
   // 顶部 8 卡头条月份：单选某月→该月；「全部」→ 取最新月（与月度页「全部→最新月头条」一致）
+  // 注意：埋点域(platformTracking)月份为短格式("2026-5")，月度域(platformMonthly)为补零格式("2026-05")，
+  // 直接把短格式传给月度域会导致 M.active[m] 等查找失败（Object.keys(undefined) 异常，整页渲染中断变空白）。
   function pgHeadlineMonth(M) {
     if (!M || !M.months || !M.months.length) return null;
-    if (FILTER.pfMonth) return FILTER.pfMonth;
+    if (FILTER.pfMonth) {
+      var fm = FILTER.pfMonth;
+      if (M.months.indexOf(fm) >= 0) return fm;
+      var padded = fm.replace(/^(\d{4})-(\d)$/, "$1-0$2");   // "2026-5" → "2026-05"
+      return M.months.indexOf(padded) >= 0 ? padded : fm;
+    }
     return M.months[M.months.length - 1];
   }
 
@@ -8636,13 +8643,13 @@
       kou: "平台全量页面配置元数据（来源：0903灵运平台全量菜单.xlsx，2026-09-03 导出）共 102 页：二级 3 / 三级 64 / 四级 35，每月恒定",
       note: "页面总数来自页面配置元数据（非埋点观测），为固定全量值；活跃率分母=此总数。" },
     { key: "activePages", label: "活跃页面数", star: false, cumulative: false,
-      calc: function (M, m) { return Object.keys(M.active[m]).length; },
+      calc: function (M, m) { return Object.keys(M.active[m] || {}).length; },
       fmt: function (v) { return fmtInt(v); },
       kou: "本月曝光>0 的三级页去重（快照）",
       note: "本月曝光>0 的三级页数量（真有人用的页面）。",
       sub: function (M, m) {
         var tot = M.totalCum[m] || 0; if (!tot) return "—";
-        return "页面活跃率：" + (Object.keys(M.active[m]).length / tot * 100).toFixed(1) + "%";
+        return "页面活跃率：" + (Object.keys(M.active[m] || {}).length / tot * 100).toFixed(1) + "%";
       } },
     { key: "open", label: "应用打开次数", star: false, cumulative: true,
       calc: function (M, m) { return M.exp[m]; },
