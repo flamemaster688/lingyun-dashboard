@@ -545,9 +545,16 @@
 
   /* ---------- 主渲染 ---------- */
   // 顶部 8 卡头条月份：单选某月→该月；「全部」→ 取最新月（与月度页「全部→最新月头条」一致）
+  // 注意：埋点域(platformTracking)月份为短格式("2026-5")，月度域(platformMonthly)为补零格式("2026-05")，
+  // 直接把短格式传给月度域会导致 M.active[m] 等查找失败（Object.keys(undefined) 异常，整页渲染中断变空白）。
   function pgHeadlineMonth(M) {
     if (!M || !M.months || !M.months.length) return null;
-    if (FILTER.pfMonth) return FILTER.pfMonth;
+    if (FILTER.pfMonth) {
+      var fm = FILTER.pfMonth;
+      if (M.months.indexOf(fm) >= 0) return fm;
+      var padded = fm.replace(/^(\d{4})-(\d)$/, "$1-0$2");   // "2026-5" → "2026-05"
+      return M.months.indexOf(padded) >= 0 ? padded : fm;
+    }
     return M.months[M.months.length - 1];
   }
 

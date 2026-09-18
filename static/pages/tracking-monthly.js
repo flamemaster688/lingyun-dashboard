@@ -124,13 +124,13 @@
       kou: "平台全量页面配置元数据（来源：0903灵运平台全量菜单.xlsx，2026-09-03 导出）共 102 页：二级 3 / 三级 64 / 四级 35，每月恒定",
       note: "页面总数来自页面配置元数据（非埋点观测），为固定全量值；活跃率分母=此总数。" },
     { key: "activePages", label: "活跃页面数", star: false, cumulative: false,
-      calc: function (M, m) { return Object.keys(M.active[m]).length; },
+      calc: function (M, m) { return Object.keys(M.active[m] || {}).length; },
       fmt: function (v) { return fmtInt(v); },
       kou: "本月曝光>0 的三级页去重（快照）",
       note: "本月曝光>0 的三级页数量（真有人用的页面）。",
       sub: function (M, m) {
         var tot = M.totalCum[m] || 0; if (!tot) return "—";
-        return "页面活跃率：" + (Object.keys(M.active[m]).length / tot * 100).toFixed(1) + "%";
+        return "页面活跃率：" + (Object.keys(M.active[m] || {}).length / tot * 100).toFixed(1) + "%";
       } },
     { key: "open", label: "应用打开次数", star: false, cumulative: true,
       calc: function (M, m) { return M.exp[m]; },
