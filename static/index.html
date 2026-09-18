@@ -10,7 +10,7 @@
   <script src="vendor/china-register.js"></script><!-- 同步注册中国地图，供省份人年地图使用 -->
   <!-- 表格解析库：本地优先，支持 CSV/Excel 上传解析 -->
   <script src="vendor/xlsx.full.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';document.head.appendChild(s);"></script>
-  <script src="data.js"></script>
+  <!-- 数据已加密为 data.js.enc，由页面底部 decrypt.js 在密码校验通过后解密并注入，此处不再加载明文 -->
 </head>
 <body data-page-node-id="pyHAHgv7UB2DaxTimpcKj3">
   <!-- 顶部：仅保留品牌 -->
@@ -328,16 +328,21 @@
     </main>
   </div>
 
-  <!-- 共享内核（全局脚本，含状态/工具/取数管线/tab 注册表）+ 7 个页面模块（各自负责，可单独优化） -->
-  <script src="core/core.js"></script>
-  <script src="core/data.js"></script><!-- 统一数据接口（页面只读这里） -->
-  <script src="pages/overview.js"></script>
-  <script src="pages/agents.js"></script>
-  <script src="pages/tracking.js"></script>
-  <script src="pages/tracking-monthly.js"></script>
-  <script src="pages/province.js"></script>
-  <script src="pages/quality.js"></script>
-  <script src="pages/alarms.js"></script>
-  <script src="pages/report.js"></script>
+  <!-- 共享内核（已加密保护，由 decrypt.js 在密码校验通过后动态加载；详见 static/decrypt.js） -->
+  <script>
+    window.__DASH_SCRIPTS__ = [
+      "core/core.js",
+      "core/data.js",
+      "pages/overview.js",
+      "pages/agents.js",
+      "pages/tracking.js",
+      "pages/tracking-monthly.js",
+      "pages/province.js",
+      "pages/quality.js",
+      "pages/alarms.js",
+      "pages/report.js"
+    ];
+  </script>
+  <script src="decrypt.js"></script>
 </body>
 </html>

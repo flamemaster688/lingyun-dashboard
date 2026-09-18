@@ -36,6 +36,10 @@ if (!fs.existsSync(DIST)) fs.mkdirSync(DIST, { recursive: true });
 fs.writeFileSync(path.join(DIST, "lingyun.bundle.js"), bundle, "utf-8");
 console.log("✓ 生成 dist/lingyun.bundle.js（" + ORDER.length + " 个模块合并）");
 
+// 1.5) 加密模式下清理可能残留的明文数据，避免仍随站点泄露
+const LEGACY_DATA = path.join(DIST, "data.js");
+if (fs.existsSync(LEGACY_DATA)) { fs.unlinkSync(LEGACY_DATA); console.log("✓ 清理残留明文 dist/data.js"); }
+
 // 2) 复制静态资源（vendor / data / style / catalog）
 function copyDir(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
@@ -49,7 +53,8 @@ function copyDir(src, dst) {
 
 const COPY = [
   ["vendor", "vendor", true],
-  ["data.js", "data.js", false],
+  ["data.js.enc", "data.js.enc", false],   // 加密数据（替代明文 data.js）
+  ["decrypt.js", "decrypt.js", false],     // 密码引导（方案 B）
   ["style.v6.css", "style.v6.css", false],
   ["metrics_catalog.json", "metrics_catalog.json", false],
   ["metrics_catalog.js", "metrics_catalog.js", false]
@@ -64,16 +69,19 @@ for (const [src, dst, isDir] of COPY) {
   }
 }
 
-// 3) 生成 dist/index.html：把 8 个 dev <script> 替换为单个 bundle
+// 3) 生成 dist/index.html：把 dev 的模块脚本块替换为「密码引导 + 单个 bundle」
 let html = fs.readFileSync(path.join(STATIC, "index.html"), "utf-8");
 const start = html.indexOf("<!-- 共享内核");
-const endMarker = '<script src="pages/report.js"></script>';
+const endMarker = '<script src="decrypt.js"></script>';
 const end = html.indexOf(endMarker);
-if (start < 0 || end < 0) throw new Error("未在 index.html 找到模块脚本块");
-const replaceTo = '  <script src="lingyun.bundle.js"></script>';
+if (start < 0 || end < 0) throw new Error("未在 index.html 找到模块脚本块/decrypt.js");
+const replaceTo =
+  '  <!-- 共享内核（已加密保护，由 decrypt.js 解密后动态加载） -->\n' +
+  '  <script>\n    window.__DASH_SCRIPTS__ = ["lingyun.bundle.js"];\n  </script>\n' +
+  '  <script src="decrypt.js"></script>';
 html = html.slice(0, start) + replaceTo + html.slice(end + endMarker.length);
 fs.writeFileSync(path.join(DIST, "index.html"), html, "utf-8");
-console.log("✓ 生成 dist/index.html（引用 lingyun.bundle.js）");
+console.log("✓ 生成 dist/index.html（密码引导 + lingyun.bundle.js）");
 
 // 4) 校验产物语法
 const { execFileSync } = require("child_process");
