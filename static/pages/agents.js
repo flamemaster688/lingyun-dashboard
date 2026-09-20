@@ -3200,11 +3200,11 @@
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i]; var id = r.appId; if (!id) continue;
       var a = agents[id];
-      if (!a) { a = agents[id] = { name: r.name, type: r.type, sp: {}, sc: {}, pr: {}, calls: 0, save: 0, real: 0, pos: 0 }; }
+      if (!a) { a = agents[id] = { name: r.name, type: r.type, sp: {}, sc: {}, pr: {}, calls: 0, save: 0, real: 0, neg: 0, hasNeg: 0, pos: 0 }; }
       if (r.positiveValue === 1) a.pos = 1;
       var c = NN(r.calls); if (c) a.calls += c;
       var sa = NN(r.saveAmount); if (sa != null) a.save += sa;
-      var rv = NN(r.realValue); if (rv != null) a.real += rv;
+      var rv = NN(r.realValue); if (rv != null) { a.real += rv; if (rv < 0) { a.neg += rv; a.hasNeg = 1; } }
       bump(a.sp, r.servicePhase); bump(a.sc, r.appScene); bump(a.pr, r.promoScene || "");
     }
     var list = [];
@@ -3216,6 +3216,10 @@
     var totReal = list.reduce(function (s, a) { return s + a.real; }, 0);
     var posSave = pos.reduce(function (s, a) { return s + a.save; }, 0);
     var posReal = pos.reduce(function (s, a) { return s + a.real; }, 0);
+    /* 亏损价值智能体：存在「产生真实价值<0」月份的应用（无论是否某月被标为正向） */
+    var loss = list.filter(function (a) { return a.hasNeg; });
+    var lossN = loss.length;
+    var lossSum = loss.reduce(function (s, a) { return s + a.neg; }, 0);
 
     function groupBy(keyFn, minAll) {
       var m = {};
@@ -3251,6 +3255,7 @@
       posKpiCard("智能体总数", fmtInt(total), "去重应用 · 全量", "#475569"),
       posKpiCard("正向价值智能体", fmtInt(posN) + "（" + (posN / total * 100).toFixed(1) + "%）", "含任一正向月份", "#16a34a"),
       posKpiCard("正向价值贡献占比", (posSave / (totSave || 1) * 100).toFixed(1) + "%", "节约金额 " + fmtWan(posSave) + " / " + fmtWan(totSave), "#2563eb"),
+      posKpiCard("亏损价值智能体", fmtInt(lossN), "产生真实价值为负 · 累计 " + fmtWan(lossSum) + " 元", "#dc2626"),
       posKpiCard("头部集中度", (top1Share * 100).toFixed(1) + "%", "Top1 占全部节约金额", "#dc2626")
     ].join("");
 
@@ -3274,7 +3279,7 @@
 
     host.innerHTML =
       '<div class="agx-insights">' +
-      '<p><b>一、总体：价值极度头部化。</b>全量 ' + fmtInt(total) + ' 个智能体中仅 <b>' + posN + ' 个（' + (posN / total * 100).toFixed(1) + '%）</b>被判定为正向价值，却贡献了约 <b>' + (posSave / (totSave || 1) * 100).toFixed(1) + '%</b> 的节约金额与全部真实价值；95% 的智能体在当前计量口径下不产生可衡量价值。</p>' +
+      '<p><b>一、总体：价值极度头部化。</b>全量 ' + fmtInt(total) + ' 个智能体中仅 <b>' + posN + ' 个（' + (posN / total * 100).toFixed(1) + '%）</b>被判定为正向价值，却贡献了约 <b>' + (posSave / (totSave || 1) * 100).toFixed(1) + '%</b> 的节约金额与全部正向真实价值；另有 <b>' + lossN + ' 个</b>应用存在「产生真实价值为负」的月份（累计亏损约 ' + fmtWan(lossSum) + ' 元，已在上方「亏损价值智能体」卡片单列），95% 的智能体在当前计量口径下不产生可衡量价值。</p>' +
       '<p><b>二、类型画像。</b>「工作流」是价值主引擎，独占正向价值约 <b>' + wfVal + '%</b>；「智能体」正向率最高（' + agRate + '%），是命中率更优的"精兵"；「对话流」正向率为 0，应停止在其上设定价值目标。</p>' +
       '<p><b>三、分类画像（服务类型 + 场景族）。</b>按服务环节看，正向率最高的是 <b>' + esc(bestPhase.name) + '（' + (bestPhase.rate * 100).toFixed(1) + '%）</b>，其次为服务中、服务后；高频正向场景清一色属于 <b>"稽核 / 查证 / 预判 / 分析"</b> 四类：正向率最高的是 ' + esc(bestScene.name) + '（' + (bestScene.rate * 100).toFixed(1) + '%），其次为退费稽核、工单查证、服务质量稽核等。被平台<b>策展推广</b>的场景正向率平均 ' + promoAvg + '%，而<b>自然生长</b>场景仅 ' + natRate + '%（约 ' + promoRatio + ' 倍差距）。</p>' +
       '<p><b>四、价值分布风险。</b>头部极端集中：单个智能体即占全部节约金额的 <b>' + (top1Share * 100).toFixed(1) + '%</b>，Top10 占 ' + (top10Share * 100).toFixed(1) + '%；且正向智能体几乎全部为单省部署，优秀模式尚未跨省复制（省份孤岛）。</p>' +
