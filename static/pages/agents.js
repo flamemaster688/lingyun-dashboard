@@ -468,6 +468,9 @@
       ".agx-kpi .val{font-size:25px;font-weight:800;line-height:1.35;color:#1f2937;font-variant-numeric:tabular-nums}",
       ".agx-kpi .sub{font-size:11px;color:#6b7280;min-height:17px}",
       ".agx-kpi .go{font-size:11px;color:#3b82f6;font-weight:700;margin-top:5px}",
+      ".agx-kpi.clickable{cursor:pointer}",
+      ".agx-kpi.clickable::before{background:#dc2626}",
+      ".agx-kpi.clickable:hover{box-shadow:0 8px 22px rgba(220,38,38,.18)}",
       ".agx-section-card{border:1px solid #e2e8f0;border-radius:14px;background:#fff;padding:16px 18px;box-shadow:0 3px 12px rgba(15,35,70,.045)}",
       ".agx-section-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}",
       ".agx-section-head b{font-size:15px;color:#172033}",
@@ -3164,11 +3167,18 @@
   /* ==================================================================
    * 十八、正向价值智能体分析与引导结论（实时计算）
    * ================================================================== */
-  function posKpiCard(label, value, sub, color) {
-    return '<div class="agx-kpi" tabindex="0" style="cursor:default">' +
+  function posKpiCard(label, value, sub, color, opts) {
+    opts = opts || {};
+    var cls = "agx-kpi" + (opts.click ? " clickable" : "");
+    var style = opts.click ? "" : ' style="cursor:default"';
+    var attr = opts.click
+      ? (' data-kpi-click="' + esc(opts.click) + '" tabindex="0" role="button" aria-label="' + esc(label) + '"')
+      : " tabindex=\"0\"";
+    var go = opts.click ? '<div class="go">查看明细 ›</div>' : "";
+    return '<div class="' + cls + '"' + attr + style + '>' +
       '<div class="lb">' + esc(label) + '</div>' +
       '<div class="val" style="color:' + color + '">' + value + '</div>' +
-      '<div class="sub">' + esc(sub) + '</div></div>';
+      '<div class="sub">' + esc(sub) + '</div>' + go + '</div>';
   }
   function posRateBar(id, arr) {
     if (!arr || !arr.length) return;
@@ -3200,11 +3210,11 @@
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i]; var id = r.appId; if (!id) continue;
       var a = agents[id];
-      if (!a) { a = agents[id] = { name: r.name, type: r.type, sp: {}, sc: {}, pr: {}, calls: 0, save: 0, real: 0, neg: 0, hasNeg: 0, pos: 0 }; }
+      if (!a) { a = agents[id] = { name: r.name, type: r.type, sp: {}, sc: {}, pr: {}, calls: 0, save: 0, real: 0, neg: 0, hasNeg: 0, pos: 0, negRows: [] }; }
       if (r.positiveValue === 1) a.pos = 1;
       var c = NN(r.calls); if (c) a.calls += c;
       var sa = NN(r.saveAmount); if (sa != null) a.save += sa;
-      var rv = NN(r.realValue); if (rv != null) { a.real += rv; if (rv < 0) { a.neg += rv; a.hasNeg = 1; } }
+      var rv = NN(r.realValue); if (rv != null) { a.real += rv; if (rv < 0) { a.neg += rv; a.hasNeg = 1; a.negRows.push({ month: r.month, province: r.province, real: rv, calls: c, save: sa, positive: r.positiveValue }); } }
       bump(a.sp, r.servicePhase); bump(a.sc, r.appScene); bump(a.pr, r.promoScene || "");
     }
     var list = [];
@@ -3255,9 +3265,15 @@
       posKpiCard("智能体总数", fmtInt(total), "去重应用 · 全量", "#475569"),
       posKpiCard("正向价值智能体", fmtInt(posN) + "（" + (posN / total * 100).toFixed(1) + "%）", "含任一正向月份", "#16a34a"),
       posKpiCard("正向价值贡献占比", (posSave / (totSave || 1) * 100).toFixed(1) + "%", "节约金额 " + fmtWan(posSave) + " / " + fmtWan(totSave), "#2563eb"),
-      posKpiCard("亏损价值智能体", fmtInt(lossN), "产生真实价值为负 · 累计 " + fmtWan(lossSum) + " 元", "#dc2626"),
+      posKpiCard("亏损价值智能体", fmtInt(lossN), "产生真实价值为负 · 累计 " + fmtWan(lossSum) + " 元", "#dc2626", { click: "loss" }),
       posKpiCard("头部集中度", (top1Share * 100).toFixed(1) + "%", "Top1 占全部节约金额", "#dc2626")
     ].join("");
+
+    var lossCard = byId("agPosKpis").querySelector('[data-kpi-click="loss"]');
+    if (lossCard) {
+      lossCard.addEventListener("click", function () { openLossDetail(loss); });
+      lossCard.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openLossDetail(loss); } });
+    }
 
     posRateBar("agPosType", byPhase);
     posRateBar("agPosPhase", byScene);
@@ -3285,6 +3301,67 @@
       '<p><b>四、价值分布风险。</b>头部极端集中：单个智能体即占全部节约金额的 <b>' + (top1Share * 100).toFixed(1) + '%</b>，Top10 占 ' + (top10Share * 100).toFixed(1) + '%；且正向智能体几乎全部为单省部署，优秀模式尚未跨省复制（省份孤岛）。</p>' +
       '<p><b>五、平台引导方向。</b>① 类型：主力用「工作流」规模化承重，精兵用「智能体」，停投「对话流」；② 场景：优先孵化服务前预判拦截（命中率最高）、规模化服务后稽核质检，聚焦已验证的稽核/查证/预判场景族；③ 机制：以"策展模板化推广"替代自由生长（复制 15–25 倍正向率），把头部模式抽象为跨省模板打破省份孤岛，并以"正向率 + 价值密度"替代"智能体数量"作为健康度 KPI。</p>' +
       '</div>';
+  }
+  /* 亏损价值智能体明细弹窗：点击「亏损价值智能体」KPI 卡片触发 */
+  function fmtYuan(v) { return (v == null || isNaN(v)) ? "/" : (v < 0 ? "-" : "") + fmtWan(Math.abs(v)) + "元"; }
+  function openLossDetail(lossAgents) {
+    closeLossDetail();
+    var sorted = (lossAgents || []).slice().sort(function (a, b) { return a.neg - b.neg; }); // 亏损最多的排前面
+    var totalNeg = sorted.reduce(function (s, a) { return s + a.neg; }, 0);
+
+    function negDetail(a) {
+      var rows = (a.negRows || []).slice().sort(function (x, y) { return monthNo(y.month) - monthNo(x.month); });
+      if (!rows.length) return "—";
+      return rows.map(function (x) {
+        var mp = (x.month || "?") + (x.province ? "·" + x.province : "");
+        return esc(mp) + ": " + fmtYuan(x.real);
+      }).join("；");
+    }
+
+    var tb = "";
+    sorted.forEach(function (a) {
+      tb += "<tr>" +
+        "<td><b>" + esc(a.name || "(未命名)") + "</b></td>" +
+        "<td>" + esc(a.type || "—") + "</td>" +
+        "<td>" + esc(a.servicePhaseM || "—") + "</td>" +
+        "<td>" + esc(a.appSceneM || "—") + "</td>" +
+        "<td class='num' style='color:#dc2626;white-space:nowrap'>" + fmtYuan(a.neg) + "</td>" +
+        "<td class='num'>" + fmtInt((a.negRows || []).length) + "</td>" +
+        "<td style='white-space:normal;min-width:300px;color:#475569'>" + negDetail(a) + "</td>" +
+        "</tr>";
+    });
+    var trow = "<tr class='qe-modal-total'><td colspan='4'><b>合计（" + fmtInt(sorted.length) + " 个亏损智能体）</b></td>" +
+      "<td class='num' style='color:#dc2626'><b>" + fmtYuan(totalNeg) + "</b></td><td class='num'>—</td><td></td></tr>";
+
+    var body = '<div class="qe-modal-scroll"><table class="qe-modal-table">' +
+      "<thead><tr>" +
+      "<th>应用名称</th><th>类型</th><th>服务环节</th><th>应用场景</th>" +
+      "<th>累计亏损</th><th>负价值月份数</th><th>负价值明细（月份·省份: 金额）</th>" +
+      "</tr></thead><tbody>" + tb + trow + "</tbody></table></div>";
+
+    var modal = document.createElement("div");
+    modal.className = "qe-modal-mask";
+    modal.id = "agLossModal";
+    modal.innerHTML =
+      '<div class="qe-modal" role="dialog" aria-modal="true" aria-label="亏损价值智能体明细">' +
+        '<div class="qe-modal-head">' +
+          '<div class="qe-modal-title">亏损价值智能体明细 · 共 ' + fmtInt(sorted.length) + ' 个</div>' +
+          '<button type="button" class="qe-modal-close" id="agLossModalClose" aria-label="关闭">×</button>' +
+        '</div>' +
+        '<div class="qe-modal-body">' + body + '</div>' +
+        '<div class="qe-modal-foot">口径：以应用（appId）为维度汇总「产生真实价值&lt;0」的月份，累计为各月负值之和；明细按 月份·省份 列出每条负值记录。</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    var cb = byId("agLossModalClose");
+    if (cb) cb.onclick = closeLossDetail;
+    modal.onclick = function (ev) { if (ev.target === modal) closeLossDetail(); };
+    document.addEventListener("keydown", onLossModalKey, true);
+  }
+  function onLossModalKey(ev) { if (ev.key === "Escape") closeLossDetail(); }
+  function closeLossDetail() {
+    var m = byId("agLossModal");
+    if (m && m.parentNode) m.parentNode.removeChild(m);
+    document.removeEventListener("keydown", onLossModalKey, true);
   }
   function promoPromotedAvg(arr) { return arr.reduce(function (s, x) { return s + x.rate; }, 0) / arr.length; }
 
