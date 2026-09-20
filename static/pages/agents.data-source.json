@@ -2,7 +2,9 @@
   "page": "agents",
   "owner": "羽琪",
   "docName": "【合】灵运BI重要数据_智能体分类_20260902.xlsx",
-  "fileId": "（由赵莹填写金山文档 file_id）",
+  "fileId": "（无·离线 Excel）",
+  "offline": true,
+  "xlsx": "build/sources/【合】灵运BI重要数据_智能体分类_20260902.xlsx",
   "refresh": "monthly",
   "version": "0901-34col",
   "feeds": [

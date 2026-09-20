@@ -1,7 +1,7 @@
 /*
  * core/data.js —— 统一数据接口（基座包·赵莹维护）
- * 页面只通过 window.LY.data 读数据，禁止直接 fetch 金山文档、禁止直接碰 window.LINGYUN_DATA。
- * 数据由赵莹用 build/fetch-data.py 走 kdocs 连接器统一取数，生成 data.js（window.LINGYUN_DATA）。
+ * 页面只通过 window.LY.data 读数据，禁止直接 fetch 任何在线文档、禁止直接碰 window.LINGYUN_DATA。
+ * 数据由构建脚本从 build/sources/ 下的离线 Excel 生成 data.js（window.LINGYUN_DATA），运行时不联网。
  *
  * 契约见 data-contract.json：顶层键 meta/overview/agents/provinces/tracking/capability/centerYearRank/alerts。
  */

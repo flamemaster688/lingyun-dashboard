@@ -1,6 +1,6 @@
 /* pages/tracking-monthly.js — 平台分析（月度）
  * 设计依据：《埋点数据看板·指标口径与下钻设计方案》（2026-08-28）
- * 数据源：V.platformMonthly（金山文档「平台分析-月」· 用户级埋点）
+ * 数据源：V.platformMonthly（离线 Excel「平台分析-月」· 用户级埋点，已固化）
  *   - 每月一个 sheet，含 点击量 / 访客人数 / 曝光次数 三个 block
  *   - 点击量 & 曝光次数 block 含 NAME 字段（用户唯一 ID = 省份-姓名）→ 用户级去重
  * 指标口径：
@@ -336,7 +336,7 @@ var PFM_PAGE_MENU = [[2, "个人探索", "AI问答", null, null], [3, "个人探
     delete window.__pfmM; // 数据可能刷新，重算
     var M = getM();
     if (!M || !M.months.length) {
-      ["pfmKpi", "pfmTrend", "pfmModTree", "pfmInsight"].forEach(function (id) { var b = $(id); if (b) b.innerHTML = '<div class="chart-fallback">暂无平台月度数据（请确认「平台分析-月」在线文件已取数并 build）。</div>'; });
+      ["pfmKpi", "pfmTrend", "pfmModTree", "pfmInsight"].forEach(function (id) { var b = $(id); if (b) b.innerHTML = '<div class="chart-fallback">暂无平台月度数据（请确认 build/sources 下的 Excel 已构建进 data.js）。</div>'; });
       return;
     }
     MOD_DRILL = { l1: null, l2: null };
@@ -357,7 +357,7 @@ var PFM_PAGE_MENU = [[2, "个人探索", "AI问答", null, null], [3, "个人探
   function renderNote(M, sels) {
     var selLabel = sels.length === M.months.length ? "全部 " + M.months.length + " 个月" : (sels.map(monthLabel).join("、") + "（" + sels.length + " 个月）");
     var pm = (window.LY.getView() || {}).platformMonthly || {};
-    var srcTxt = (pm.source || "金山文档·平台分析-月") + (pm.isSample ? "（⚠ 样本验证数据，非真实全量；运行全量 dump 后替换）" : "");
+    var srcTxt = (pm.source || "离线 Excel·平台分析-月") + (pm.isSample ? "（⚠ 样本验证数据，非真实全量）" : "");
     noteBox("pfmProvNote", "数据源：" + srcTxt + "；口径：用户级真实去重（省份-姓名）。时间筛选=本页月份（单选/多选，当前：" + selLabel + "）。MAU/新增/留存/转化率均为真实值。");
   }
   function renderMonthChips(M) {

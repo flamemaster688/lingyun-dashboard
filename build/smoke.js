@@ -39,7 +39,7 @@ const document = {
 };
 
 const echarts = {
-  init: () => ({ setOption() {}, resize() {}, dispose() {} }),
+  init: () => ({ setOption() {}, resize() {}, dispose() {}, on() {}, off() {}, getOption() { return {}; } }),
   registerMap() {},
   getMap: () => null,
   version: "5.5.1"
@@ -59,7 +59,7 @@ const URL = { createObjectURL: () => "blob:x", revokeObjectURL: () => {} };
 
 const sandbox = {
   window: null, document, echarts, XLSX, Blob, URL,
-  console, setTimeout: () => 0, clearTimeout: () => {},
+  console, setTimeout: () => 0, clearTimeout: () => {}, addEventListener: () => {}, removeEventListener: () => {},
   Math, Date, JSON, Object, Array, String, Number, Boolean, RegExp,
   parseInt, parseFloat, isNaN, isFinite
 };

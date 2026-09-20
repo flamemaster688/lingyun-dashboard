@@ -1,9 +1,11 @@
 {
   "page": "overview",
   "owner": "吴超",
-  "docName": "（待填）金山文档文件名",
-  "fileId": "（待填）kdocs file_id",
-  "refresh": "daily",
+  "docName": "【合】灵运BI重要数据（终版）.xlsx",
+  "fileId": "（无·离线 Excel）",
+  "offline": true,
+  "xlsx": "build/sources/【合】灵运BI重要数据（终版）.xlsx",
+  "refresh": "manual（替换 Excel 后重新构建）",
   "feeds": [
     { "domain": "overview", "sheet": "（待填）", "range": "（待填）", "fields": ["month", "calls", "personYear", "activeAgents"] },
     { "domain": "capability", "sheet": "（待填）", "range": "（待填）", "fields": ["month", "yearly", "monthly"] },

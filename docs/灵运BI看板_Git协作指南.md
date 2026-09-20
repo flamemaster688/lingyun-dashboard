@@ -1,3 +1,6 @@
+> **注（2026-09-18 起）**：本项目已改为**纯离线**——数据源只有 `build/sources/` 下的 Excel，构建时固化进 `data.js`，运行时不联网、不接任何离线 Excel。
+> 下文若出现「Excel」且语义偏「在线协作」，均为历史描述，实际以离线 Excel 为准。
+
 # 灵运BI看板 · Git 多人协作指南
 
 > 目标：用 Git 把赵莹、吴超、羽琪三人的工作「连通」到一处，互不覆盖、可回滚、可审查。
@@ -121,7 +124,7 @@ git merge dev-yuqi
 git push origin main
 
 # 接真实数据 + 打包部署（只在你这里做）
-python build/fetch-data.py merge   # 用两人回填的 data-source.json 接数据 → 生成 data.js
+python build/build_from_xlsx.py merge   # 用两人回填的 data-source.json 接数据 → 生成 data.js
 node build/bundle.js               # 生成 dist/
 # 部署到 COS / Cloudflare Pages（见决策表第 4 节）
 ```
@@ -133,7 +136,7 @@ node build/bundle.js               # 生成 dist/
 
 ## 6. 接真实数据后的协作
 
-- 吴超/羽琪填好 `pages/<id>.data-source.json` 后，**由赵莹统一**跑 `fetch-data.py merge` 生成 `data.js`。
+- 吴超/羽琪填好 `pages/<id>.data-source.json` 后，**由赵莹统一**跑 `build_from_xlsx.py merge` 生成 `data.js`。
 - 这一步只在赵莹本地（或赵莹的 WorkBuddy）做，**不进别人的分支**，避免数据文件被反复覆盖。
 - `data.js` 的更新随赵莹的 commit 进 `main`，三人拉取后即是最新数据。
 

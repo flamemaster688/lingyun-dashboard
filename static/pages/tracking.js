@@ -1,6 +1,6 @@
 /* pages/tracking.js — 平台分析（埋点）（负责人：赵莹）
  * 只读 core/core.js 暴露的全局状态（D / FILTER / V），不写取数逻辑。
- * 数据源：金山文档·平台分析（atbL8BymF1MWRdUn3wue1xkekdEskSQYj），按周统计埋点 PV/UV/曝光。
+ * 数据源：离线 Excel《用户行为记录》（build/sources，已固化进 data.js），按周/月统计埋点 PV/UV/曝光。
  * 本页按《页面埋点数据分析报告》结构重构：结论总览 → 核心指标 → 总体趋势 → 菜单结构 →
  *   标注模块 → 灵犀深度分析 → 页面维度 → 省份维度 → 省份×模块交叉；每个图表后附分析。
  * 时间维度由本页专属筛选（全部周 / 按周 / 按月）驱动；省份筛选作用于省份维度与交叉热力。
@@ -573,7 +573,7 @@
     disposeLocalAll();
 
     if (!pt || !pt.weeks || !pt.weeks.length) {
-      var f1 = $("pgKpi"); if (f1) f1.innerHTML = '<div class="chart-fallback">暂无平台埋点数据（请确认「平台分析」在线文件已取数）。</div>';
+      var f1 = $("pgKpi"); if (f1) f1.innerHTML = '<div class="chart-fallback">暂无平台埋点数据（请确认 build/sources 下的 Excel 已构建进 data.js）。</div>';
       var c0 = $("pgConclusion"); if (c0) c0.innerHTML = "";
       var da0 = $("pgDrillArea"); if (da0) da0.style.display = "none";
       return;
@@ -596,7 +596,7 @@
 
     // ===== 顶部说明 =====
     noteBox("pgProvNote",
-      "数据源：" + (pt.source || "金山文档·平台分析") + "；" + scopeNote +
+      "数据源：" + (pt.source || "离线 Excel·用户行为记录") + "；" + scopeNote +
       (ap ? "；省份：" + ap.join("、") : "；省份：全国") +
       "。页面维度/菜单结构/趋势为全站口径，省份筛选仅作用于省份维度、灵犀渗透与交叉热力。");
 

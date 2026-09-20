@@ -1,3 +1,6 @@
+> **注（2026-09-18 起）**：本项目已改为**纯离线**——数据源只有 `build/sources/` 下的 Excel，构建时固化进 `data.js`，运行时不联网、不接任何离线 Excel。
+> 下文若出现「Excel」且语义偏「在线协作」，均为历史描述，实际以离线 Excel 为准。
+
 # 灵运BI看板 · GitHub 多人协作操作流程
 
 > 适用：赵莹（仓库主人）、吴超、羽琪 三人用 **GitHub** 连通文件。  
@@ -113,10 +116,10 @@ git push origin main
 
 ```bash
 # 两人回填 pages/<id>.data-source.json 后，由你统一接数据
-python build/fetch-data.py merge   # 生成 data.js
+python build/build_from_xlsx.py merge   # 生成 data.js
 node build/bundle.js               # 生成 dist/
 # 部署到 COS / Cloudflare Pages（见决策表第 4 节）
-git add data.js && git commit -m "data: 接入最新金山文档数据" && git push origin main
+git add data.js && git commit -m "data: 接入最新离线 Excel数据" && git push origin main
 ```
 
 ---

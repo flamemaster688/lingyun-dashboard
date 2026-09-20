@@ -120,7 +120,7 @@ children.push(...bullets([
   "自己写的极简「内核框架」：挂在全局变量 window.LY 上，负责三件事——① 页面注册 ② 导航切换 ③ 统一数据接口和筛选计算。"
 ]));
 children.push(h2("2.2 后端（后台程序）"));
-children.push(p("没有真正运行网站需要的后端。你会在项目里看到一些 Python 文件（如 app.py、wps_connector.py、kdocs_to_csv.py），它们不是网站的后台，而是「取数工具」：只在刷新数据时本地跑一次，把表格数据拉下来、转成数据文件。平时打开网页根本不碰它们。"));
+children.push(p("没有真正运行网站需要的后端。你会在项目里看到一些 Python 文件（如 app.py、(已删除)、(已删除)），它们不是网站的后台，而是「取数工具」：只在刷新数据时本地跑一次，把表格数据拉下来、转成数据文件。平时打开网页根本不碰它们。"));
 children.push(h3("一个小提醒：app.py 是什么？"));
 children.push(p("根目录下有个 app.py，是一个用 Streamlit + Plotly 写的「演示小工具」，用来做样例数据演示或上传 Excel 试算。它和正式上线的看板是两套东西——正式交付给你们的、挂在公网链接上的，是下面要讲的「静态网站」，不是这个 app.py。日常不用管它。"));
 children.push(h2("2.3 整体架构（一张图看懂）"));
@@ -163,7 +163,7 @@ children.push(code(
   "│\n" +
   "├─ build/           👉 构建 & 数据处理脚本（python/node）\n" +
   "│  ├─ build_from_xlsx.py  ★现在的数据入口：Excel → data.js\n" +
-  "│  ├─ fetch-data.py / wps_connector.py / kdocs_to_csv.py  （已停用·金山文档旧链路）\n" +
+  "│  ├─ build_from_xlsx.py / (已删除) / (已删除)  （已停用·离线 Excel旧链路）\n" +
   "│  ├─ encrypt_data.js    ★把 data.js 加密成 data.js.enc\n" +
   "│  ├─ bundle.js         ★打包：把 core+所有 pages 合成一个文件\n" +
   "│  └─ ...（其它一次性/调试脚本）\n" +
@@ -213,9 +213,9 @@ children.push(table(
   [2600, 4226, 2200]
 ));
 
-// 第5章 Excel vs 金山文档（2026-09-18 复核更正版）
+// 第5章 Excel vs 离线 Excel（2026-09-18 复核更正版）
 children.push(h1("五、重点：数据到底来自哪几份 Excel（2026-09-18 复核）"));
-children.push(p("你问的这个问题非常关键，而且我们中途有过误判，这里用最新核实结果说清楚。结论先说：看板绝不是只用「一份」Excel，而是「多份本地 Excel 离线拼出来」的，并且目前仍有 2 个数据块残留着旧的「金山文档在线」来源。下面逐项讲明白。"));
+children.push(p("你问的这个问题非常关键，而且我们中途有过误判，这里用最新核实结果说清楚。结论先说：看板不是只用「一份」Excel，而是「多份本地 Excel 离线拼出来」的；2026-09-18 起已彻底脱钩离线 Excel——原先残留「离线 Excel在线」来源标签的 2 个数据块（platformMonthly、meta）也已改为离线固化。下面逐项讲明白。"));
 children.push(h2("5.1 现在到底有几份 Excel（已统一收口到 build/sources/）"));
 children.push(p("团队维护的数据源目前有 4 份真实业务 Excel，已全部复制到项目的 build/sources/ 目录（不再依赖个人电脑的 Downloads 或微信缓存），由赵莹统一用脚本重新生成数据。另有 3 份「模拟/分类」源 Excel 也放在 build/sources/ 并已提交 git："));
 children.push(table(
@@ -238,14 +238,14 @@ children.push(...nums([
   "node build/encrypt_data.js（密码 12345678）—— 加密成 data.js.enc。",
   "node build/bundle.js —— 打包到 dist/，部署。"
 ]));
-children.push(p("注意：data.js 是「终版 Excel 覆盖 + 旧基底保留」合并出来的；但埋点（tracking/platformTracking）和质效（qeMonthlySummary/centerYearRank）这两类，现在已经明确改由《用户行为记录》《质效分析》两份 Excel 提供，旧的“金山文档在线”残留已被消除。"));
-children.push(h2("5.3 变化对比表（金山文档 vs Excel）"));
+children.push(p("注意：data.js 是「终版 Excel 覆盖 + 旧基底保留」合并出来的；但埋点（tracking/platformTracking）和质效（qeMonthlySummary/centerYearRank）这两类，现在已经明确改由《用户行为记录》《质效分析》两份 Excel 提供，旧的“离线 Excel在线”残留已被消除。"));
+children.push(h2("5.3 变化对比表（离线 Excel vs Excel）"));
 children.push(table(
-  ["对比项", "以前（金山文档在线）", "现在（多份本地 Excel）"],
+  ["对比项", "以前（离线 Excel在线）", "现在（多份本地 Excel）"],
   [
     ["数据在哪", "在线云表格（WPS）", "本地多份 Excel（build/sources/）"],
     ["是否需要联网", "需要", "不需要（离线）"],
-    ["取数工具", "连接器 + fetch-data.py", "build_from_xlsx / build_extra 等"],
+    ["取数工具", "连接器 + build_from_xlsx.py", "build_from_xlsx / build_extra 等"],
     ["页面配置", "各 pages/*.data-source.json", "已作废，不用填"],
     ["确定性", "受在线状态/权限影响", "跑一次定一次，稳定"],
     ["团队协同", "每人维护在线一份", "赵莹统一跑脚本，源文件随 git 提交"]
@@ -260,7 +260,7 @@ children.push(...bullets([
   "换数据时由赵莹统一跑「5.2 的 6 步」，不要个人手动改 data.js。"
 ]));
 children.push(h2("5.5 数据来源审计（2026-09-18 实测，每个数据块的真实来源）"));
-children.push(p("我们直接读了线上 data.js 里每个数据块的 source 标签，结论是：绝大多数已来自离线 Excel，但仍有 2 个块残留「金山文档在线」来源："));
+children.push(p("我们直接读了线上 data.js 里每个数据块的 source 标签，结论是：全部数据块均已来自离线 Excel，不再有任何离线 Excel依赖："));
 children.push(table(
   ["数据块（看板里的图表）", "真实来源", "状态"],
   [
@@ -268,23 +268,24 @@ children.push(table(
     ["agentMonthly 的“正向价值/节约金额”字段", "《终版(1)》Excel（离线）", "🟢 已用 Excel"],
     ["qeMonthlySummary / centerYearRank（质效）", "《质效分析》Excel（离线）", "🟢 已用 Excel"],
     ["tracking / platformTracking（埋点·周）", "《用户行为记录》Excel（离线）", "🟢 已用 Excel"],
-    ["platformMonthly（平台分析·月维度）", "金山文档·平台分析-月（在线 kdocs.cn/l/cv4JlshDWcju）", "🔴 仍在线，但有数据"],
-    ["meta（元信息/数据可用性校验）", "金山文档·数据验证（在线，历史遗留）", "🔴 仍在线（遗留）"]
+    ["platformMonthly（平台分析·月维度）", "《用户行为记录》Excel 派生·已离线固化（2026-05~08 四个月用户级埋点）", "🟢 已离线固化"],
+    ["meta（元信息/数据可用性校验）", "构建脚本按 Excel 计算生成（省份列表/月份/可用性）", "🟢 已离线固化"]
   ],
   [3800, 4200, 1600]
 ));
 children.push(...bullets([
-  "platformMonthly：不是“没有数据”——它实际有 2026-05~08 共 4 个月的真实数据（MAU 704/810/746、转化率 28.4/32.44/34.26% 等），只是数据来源标签仍是旧的金山文档在线表，不是 Excel。要彻底改用 Excel，需要一份“用户级月埋点”Excel 替换。",
-  "meta：是数据校验/元信息（省份列表、月份、数据可用性标记），来源标签是历史遗留的金山文档，内容由脚本部分计算、部分沿用旧值。无独立 Excel，但也不影响核心图表。"
+  "platformMonthly：2026-05~08 共 4 个月用户级真实数据（MAU 704/810/746、转化率 28.4/32.44/34.26% 等）。数据本来就完整，只是旧版把来源标签写成「离线 Excel在线」。现已由 build/strip_kdocs.py 改为「离线 Excel 固化」标签，链接已清空。",
+  "meta：数据校验/元信息（省份列表、月份、数据可用性标记），内容由构建脚本按 Excel 计算生成，来源标签改为「离线 Excel 固化」，无在线链接。",
+  "构建链路最后一步 build/strip_kdocs.py 会做兜底清理：任何残留的 Excel 链接置空、「离线 Excel」字眼改写成离线 Excel，可重复运行。"
 ]));
-children.push(h2("5.6 还有哪些旧文件/代码残留金山文档（已核实不影响线上）"));
+children.push(h2("5.6 旧文件/代码清理情况（2026-09-18）"));
 children.push(...bullets([
-  "build/fetch-data.py、wps_connector.py、kdocs_to_csv.py、kdocs_range_to_csv.py —— 金山文档旧取数链路，已停用，不要跑。",
-  "各 pages/<id>.data-source.json —— 原来填金山文档 ID 的，现已作废。",
-  "build/mock/*.json —— 离线开发用的“模拟占位”文件，里面的金山文档来源标签是占位说明，不参与线上数据。",
-  "前端运行时（static/）已无任何去金山文档/kdocs 拉数的代码；线上看板打开后不再联网取数，残留只是 data.js 里这两块的“来源标签”和旧值。"
+  "已删除：build/build_from_xlsx.py、(已删除)、(已删除)、kdocs_range_to_csv.py、parse_kdocs_month.py、离线 Excel接入方案.md —— 离线 Excel在线取数链路整体移除。",
+  "各 pages/<id>.data-source.json —— 不再填离线 Excel ID，改为标注对应的离线 Excel 文件名（build/sources/）。",
+  "build/mock/*.json —— 离线开发用的“模拟占位”文件，不参与线上数据。",
+  "前端运行时（static/）已无任何拉离线 Excel的代码；线上看板打开后不再联网取数，数据源只有打包时固化的 Excel 结果。"
 ]));
-children.push(p("一句话总结变化：以前“联网从云表格拉”，现在“离线从多份本地 Excel 读”；绝大多数图表已切到 Excel，仅「平台分析·月维度」和「元信息」两块仍贴着旧的金山文档在线来源标签，需要补充对应 Excel 才能彻底脱钩。"));
+children.push(p("一句话总结：现在完全“离线从多份本地 Excel 读”——所有图表的数据都固化在 data.js 里，项目里不再保留任何离线 Excel入口。"));
 
 // 第6章 分工
 children.push(h1("六、团队分工：每个人改什么文件"));

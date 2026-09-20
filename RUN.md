@@ -50,26 +50,35 @@ node build/smoke.js dist
 node build/bundle.js
 ```
 
-## 四、数据：离线用真实快照，或切到 mock
+## 四、数据：只有离线 Excel，没有离线 Excel
 
-- **默认**：`static/data.js` 已是真实数据快照，直接开发即可。
-- **想用 mock 数据**（比如真实数据缺失某页）：
+> 2026-09-18 起项目**彻底脱钩离线 Excel**。数据源只有 `build/sources/` 下的 Excel，构建时固化进 `static/data.js`，运行时不联网。
+
+- **默认**：`static/data.js` 已是 Excel 生成的真实数据快照，直接开发即可。
+- **更新数据（替换 Excel 后按序重跑）**：
   ```bash
-  # 生成 6 份 mock（已生成在 build/mock/，一般不用重跑）
-  python build/fetch-data.py extract
-  # 合并 mock → 写出 data.dev.js（不覆盖真实 data.js）
-  python build/fetch-data.py mock
-  # 想用 mock 预览：把 data.dev.js 临时改名覆盖 data.js（预览完再恢复真实数据）
-  cp static/data.js static/data.real.bak && cp static/data.dev.js static/data.js
+  python build/build_from_xlsx.py     # 终版 Excel -> data.js 主数据
+  python build/build_extra.py         # 质效分析 + 用户行为记录 -> 覆盖质效/埋点块
+  python build/fix_data_sept18.py     # 重建省份域 + 回填智能体服务环节（补丁）
+  python build/strip_kdocs.py         # 清除任何离线 Excel痕迹（幂等兜底）
+  node build/encrypt_data.js          # 加密 -> dist/data.js.enc（密码 12345678）
+  node build/bundle.js                # 打包 -> dist/
   ```
-- **恢复真实数据**：赵莹重跑原 `build_real.py`（真实金山文档取数）覆盖 `data.js`。
+- **mock 仅供本地开发**：`build/mock/*.json`、`static/data.dev.js` 不要覆盖线上 `data.js`。
+- 早期从离线 Excel取数的脚本（`build_real.py`、`kdocs_*.py`、`(已删除)`、`parse_kdocs_month.py`、`build/build_from_xlsx.py`）已删除或标注**已废弃**，不要重跑，否则 `data.js` 会回退到旧数据。
 
-## 五、把你的金山文档接进来（个人填，赵莹统一取数）
+## 五、数据源清单（build/sources/）
 
-1. 拿到自己的金山文档后，编辑 `pages/<你的页面id>.data-source.json`，填 `fileId` / `sheet` / `range` / `fields`。
-2. 把填好的 json 发给赵莹。
-3. 赵莹用 `build/fetch-data.py`（对接 kdocs 连接器）把多份取数结果合并进 `data.js`，重新部署。
-> 页面**永远不写取数逻辑**——这是规避「金山文档不能浏览器直连」的关键。
+| Excel | 供给看板的哪些内容 |
+| --- | --- |
+| 《【合】灵运BI重要数据（终版）.xlsx》 | 总览 / 分省总览 / 智能体明细 / 应用聚合（主数据） |
+| 《【合】灵运BI重要数据_智能体分类_20260902.xlsx》 | 智能体服务环节 / 应用场景分类 |
+| 《质效分析.xlsx》 | 质效月度汇总、31 分中心等效人年排名 |
+| 《用户行为记录.xlsx》 | 平台埋点（周 / 月：点击 · 访客 · 曝光） |
+
+- 脚本按「工作表名 + 表头名」匹配：改工作表名或列标题会导致该列取数为空。
+- `pages/<id>.data-source.json` 只是字段契约说明，其中 `fileId` 已作废，只看 `xlsx` 字段。
+> 页面**永远不写取数逻辑**——数据全部由 `build/` 下的脚本离线生成。
 
 ## 六、协作方式（二选一，见决策结论表）
 

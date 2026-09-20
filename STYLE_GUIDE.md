@@ -26,7 +26,7 @@ WorkBuddy 必须把它当作**不可违反的边界**，而不是建议。
    - 羽琪：`agents.js`、`alarms.js`
    - 赵莹：全部（含 `core/`、`index.html`、`style.v6.css`、`data.js`）
 2. **禁止改动** `core/core.js`、`core/data.js`、`index.html`、`style.v6.css`、`data.js`、`metrics_catalog.*`、`vendor/`。这些是基座，由赵莹维护。
-3. **禁止 `fetch` / `XMLHttpRequest` 直接连金山文档或其它外部接口**。数据只能从 `LY.data`（见第 6 节）读。取数由赵莹统一用 `build/fetch-data.py` 走 kdocs 连接器完成。
+3. **禁止 `fetch` / `XMLHttpRequest` 直接连离线 Excel或其它外部接口**。数据只能从 `LY.data`（见第 6 节）读。取数由赵莹统一用 `build/fetch-data.py` 走 Excel 连接器完成。
 4. **禁止直接读 `window.LINGYUN_DATA`**。一律走 `LY.data.*` 接口。
 5. **禁止新增 `<style>` 或内联 style 写样式**。所有样式必须复用第 9 节已有的 CSS 类；需要新视觉先把诉求告诉赵莹，由赵莹在 `style.v6.css` 加类。
 6. **禁止引入粉色 / 大面积暖橙色 / 玫红等暖色块**。配色只允许冷色系（蓝 / 雾蓝 / 薄荷绿 / 青绿 / 紫色）+ 克制珊瑚红（仅异常/告警/缺口）。
@@ -59,7 +59,7 @@ lingyun_dashboard/
 │  ├─ style.v6.css            # 全局样式（勿改；版本号避缓存）
 │  └─ metrics_catalog.*       # 指标字典（勿改）
 ├─ build/                     # 校验/打包/取数脚本（赵莹）
-└─ pages/<id>.data-source.json # 各页金山文档声明（个人填 fileId 回传赵莹）
+└─ pages/<id>.data-source.json # 各页离线 Excel声明（个人填 fileId 回传赵莹）
 ```
 
 **预览方式**：双击 `static/index.html`（用真实 `data.js`）或 `static/index.dev.html`（用 mock `data.dev.js`）。两者都是纯本地 `file://` 打开，无需起服务器。
@@ -308,7 +308,7 @@ topChart("ovTrend", {
 
 1. **语法**：`node build/check.js`（全量）或 `node build/check.js static/pages/<你的页>.js`（只检自己）。必须 0 错误。
 2. **运行**：`node build/smoke.js static` 加载 core+7 页用真实数据渲染，自己页面所在 tab 不得抛错（无 ReferenceError/TypeError）。
-3. **红线**：确认未改 `core/`、`index.html`、`style.v6.css`、`data.js`；未 `fetch` 金山文档；未直读 `LINGYUN_DATA`；未写 `<style>`/内联样式；未引入粉/暖色块；未改他人 `pages/*.js`。
+3. **红线**：确认未改 `core/`、`index.html`、`style.v6.css`、`data.js`；未 `fetch` 离线 Excel；未直读 `LINGYUN_DATA`；未写 `<style>`/内联样式；未引入粉/暖色块；未改他人 `pages/*.js`。
 4. **预览**：浏览器打开 `index.html`（真实数据）或 `index.dev.html`（mock），切到自己页面确认视觉/交互正常、无 console 报错、图表高度正常、缺数有占位。
 5. **数据契约**：若新增字段，已更新 `data-contract.json` 并@赵莹。
 6. **回传**：只把**自己改的 `pages/*.js`**（1~3 个文件）发回给赵莹，**不要**发整个包、不要发 `core/`、不要发 `data.js`。

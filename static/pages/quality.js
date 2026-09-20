@@ -812,7 +812,7 @@ function nationalYearTotals(R) {
     var mTxt = (FILTER.dim === "month" && FILTER.months.length)
       ? FILTER.months.slice().sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).join("、")
       : "全周期（1-7月）";
-    noteBox("qeProvNote", "数据源：金山文档·质效分析（等效人年按分中心/单位汇总）+ sheet3「数据月度汇总」。上方 9 张卡片随顶部「时间范围 / 单位」筛选动态变化：当前 " + mTxt + " · " + scopeTxt + "。第 1 张「总体（2026）」右上角可勾选 6 项能力（默认四项），数值与同比实时重算；灵运平台、智能立单为 2026 年新增、无 2025 基线，其同比显示「/」。2025 总体固定含 5 项（含智能点选）。");
+    noteBox("qeProvNote", "数据源：离线 Excel·质效分析（等效人年按分中心/单位汇总）+ sheet3「数据月度汇总」。上方 9 张卡片随顶部「时间范围 / 单位」筛选动态变化：当前 " + mTxt + " · " + scopeTxt + "。第 1 张「总体（2026）」右上角可勾选 6 项能力（默认四项），数值与同比实时重算；灵运平台、智能立单为 2026 年新增、无 2025 基线，其同比显示「/」。2025 总体固定含 5 项（含智能点选）。");
   }
 
 function renderQuality() {

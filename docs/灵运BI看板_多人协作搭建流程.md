@@ -1,3 +1,6 @@
+> **注（2026-09-18 起）**：本项目已改为**纯离线**——数据源只有 `build/sources/` 下的 Excel，构建时固化进 `data.js`，运行时不联网、不接任何离线 Excel。
+> 下文若出现「Excel」且语义偏「在线协作」，均为历史描述，实际以离线 Excel 为准。
+
 # 灵运 BI 看板 · 多人协作搭建流程（v2 · 基于现有基础版）
 
 > 基座负责人：你（赵莹）｜协作人：吴超、羽琪｜工具：WorkBuddy
@@ -76,7 +79,7 @@ window.LingYunPages['tracking'] = {
 | 7 | 报告生成 | `report.js` | 吴超 | ❌ 仅功能设计 | 现有有雏形（生成 .md 报告） |
 
 - 你 2 个（埋点、质效）；吴超 3 个（总览、省份、报告）；羽琪 2 个（智能体、告警）。
-- **告警中心是第 6 页，规则上需要数据源**，但 catalog 暂无告警指标、基础版也无此页 → 数据源待羽琪定（要么提供自己的金山文档，要么基于现有指标阈值派生告警）。只有第 7 页「报告生成」是纯功能、不连数据源。
+- **告警中心是第 6 页，规则上需要数据源**，但 catalog 暂无告警指标、基础版也无此页 → 数据源待羽琪定（要么提供自己的离线 Excel，要么基于现有指标阈值派生告警）。只有第 7 页「报告生成」是纯功能、不连数据源。
 
 ---
 
@@ -88,7 +91,7 @@ window.LingYunPages['tracking'] = {
    - 图表用 ECharts（本地 echarts.min.js），不引新库。
    - 复用 `core/util.js` 的 KPI 卡 / 表格 / 空态组件，不自造一套样式。
    - 配色只用冷色系变量，异常才用珊瑚红。
-2. **`pages/<名字>.data-source.json`**：声明「本页要从哪个金山文档取数」（解决“每人提供自己的金山文档”）。
+2. **`pages/<名字>.data-source.json`**：声明「本页要从哪个离线 Excel取数」（解决“每人提供自己的离线 Excel”）。
    ```json
    {
      "owner": "赵莹",
@@ -98,21 +101,21 @@ window.LingYunPages['tracking'] = {
      ]
    }
    ```
-   构建脚本读取所有 page 的 `data-source.json` → 逐个用 kdocs 连接器取数 → 拼成 `data.js`。**页面自己不写任何取数逻辑**。
+   构建脚本读取所有 page 的 `data-source.json` → 逐个用 Excel 构建脚本（build/）取数 → 拼成 `data.js`。**页面自己不写任何取数逻辑**。
 
 > 报告生成（`report.js`）不连数据源，无需 `data-source.json`，只做功能 UI（选报告类型 → 生成 → 下载 .md）。
 
 ---
 
-## 五、数据管线（每人自己的金山文档，统一出包）
+## 五、数据管线（每人自己的离线 Excel，统一出包）
 
 ```
-各人金山文档 ──kdocs连接器──> build/fetch-data.py 读全部 pages/*.data-source.json
+各人离线 Excel ──Excel 构建脚本（build/）──> build/build_from_xlsx.py 读全部 pages/*.data-source.json
         ──> 生成 static/data.js（按 page 名分命名空间）
         ──> 部署静态站（链接即看最新快照）
 ```
 
-- 取数集中在你这边跑（浏览器不能直连金山文档：CORS + 鉴权），所以数据以「构建快照」形式进 `data.js`。
+- 取数集中在你这边跑（浏览器不能直连离线 Excel：CORS + 鉴权），所以数据以「构建快照」形式进 `data.js`。
 - 开发期：先放 `mock/<名字>.json` 假数据，三人不用真实文档也能联调预览。
 - 真实取数：每人把自有文档的 file_id / sheet / range 填进自己的 `data-source.json`，你统一构建。
 
@@ -133,7 +136,7 @@ window.LingYunPages['tracking'] = {
 
 **阶段 3 · 合并**（你，约 0.5 天）：git merge 三个分支（因文件夹隔离基本无冲突）；打包方式则把 7 个 page 文件拷进 `pages/`，按 `meta.order` 自动排 tab。
 
-**阶段 4 · 接真实数据 + 部署**：你跑 `build/fetch-data.py`（读各人 `data-source.json`）→ 生成 `data.js` → 部署（Vercel / Cloudflare Pages / Netlify，CloudStudio 既往抖动作备选）→ 发链接。
+**阶段 4 · 接真实数据 + 部署**：你跑 `build/build_from_xlsx.py`（读各人 `data-source.json`）→ 生成 `data.js` → 部署（Vercel / Cloudflare Pages / Netlify，CloudStudio 既往抖动作备选）→ 发链接。
 
 ---
 
@@ -153,4 +156,4 @@ window.LingYunPages['tracking'] = {
 1. **是否现在就把巨石 `lingyun.app.v10.js` 拆成 core + 7 page 模块？** 这是多人协作能零冲突合并的前提，建议你确认后我直接帮你拆（保留现有 6 页逻辑，补 alert 占位）。
 2. 告警中心的数据源怎么定（羽琪自有文档 or 阈值派生）？
 3. 部署平台选哪个（Vercel / Cloudflare Pages / Netlify）？
-4. 确认后我可以一并生成：`core/util.js`、`AI_DEV_BRIEF.md`（吴超/羽琪两份）、7 份 `mock/*.json`、以及 `build/fetch-data.py` 的按页取数版。
+4. 确认后我可以一并生成：`core/util.js`、`AI_DEV_BRIEF.md`（吴超/羽琪两份）、7 份 `mock/*.json`、以及 `build/build_from_xlsx.py` 的按页取数版。

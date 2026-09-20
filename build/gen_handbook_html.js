@@ -126,8 +126,8 @@ const auditRows = [
   ["agentMonthly 正向价值/节约金额字段", "《终版(1)》Excel", "ok"],
   ["qeMonthlySummary / centerYearRank 质效", "《质效分析》Excel", "ok"],
   ["tracking / platformTracking 埋点(周)", "《用户行为记录》Excel", "ok"],
-  ["platformMonthly 平台分析·月维度", "金山文档在线（kdocs）", "bad"],
-  ["meta 元信息/数据校验", "金山文档在线（遗留）", "bad"],
+  ["platformMonthly 平台分析·月维度", "Excel 派生·已离线固化", "ok"],
+  ["meta 元信息/数据校验", "构建脚本生成·已离线固化", "ok"],
 ];
 const svgAudit = `
 <svg viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" class="diag">
@@ -249,7 +249,7 @@ const html = `<!doctype html>
 
 <section id="c5">
   <h2>五、数据到底来自哪几份 Excel（2026-09-18 复核）</h2>
-  <div class="callout"><b>重要更正：</b>看板绝不是只用「一份」Excel，而是 <b>4 份真实业务 Excel + 3 份模拟/分类源 Excel</b> 离线拼出来的，并且目前仍有 <b>2 个数据块</b>残留着旧的「金山文档在线」来源。</div>
+  <div class="callout"><b>重要更正：</b>看板绝不是只用「一份」Excel，而是 <b>4 份真实业务 Excel + 3 份模拟/分类源 Excel</b> 离线拼出来的，并且目前仍有 <b>2 个数据块</b>残留着旧的「离线 Excel在线」来源。</div>
   <h3>5.1 四份真实业务 Excel（已收口到 build/sources/）</h3>
   <table>
     <tr><th>#</th><th>Excel</th><th>读取脚本</th><th>喂给看板的内容</th></tr>
@@ -263,13 +263,13 @@ const html = `<!doctype html>
   <p style="font-size:13px;color:var(--muted)">图2：数据流。4 份 Excel → 4 步 build 脚本 → data.js → 加密 → data.js.enc → 打包 dist → 部署。</p>
   <h3>5.3 数据来源审计（每个数据块的真实来源）</h3>
   ${svgAudit}
-  <div class="callout"><b>关于“平台分析·月维度”（platformMonthly）：</b>它<b>不是没有数据</b>——实际有 2026-05~08 共 4 个月的真实数据（MAU 704/810/746、转化率 28.4/32.44/34.26% 等）。只是它的“来源标签”仍写着旧的金山文档在线表，<b>不是 Excel</b>。要彻底改用 Excel，需要补充一份“用户级月埋点”Excel。<br/>
-  <b>关于 meta：</b>是数据校验/元信息（省份、月份、可用性标记），来源标签是历史遗留的金山文档，内容由脚本部分计算，不影响核心图表。</div>
-  <h3>5.4 仍残留金山文档的地方（已核实不影响线上运行）</h3>
-  <p>前端运行时（<code>static/</code>）已无任何去金山文档拉数的代码；线上看板打开后不再联网取数。残留只是 data.js 里上述两块的“来源标签”和旧值，以及以下已停用的旧文件：</p>
+  <div class="callout"><b>关于“平台分析·月维度”（platformMonthly）：</b>它<b>不是没有数据</b>——实际有 2026-05~08 共 4 个月的真实数据（MAU 704/810/746、转化率 28.4/32.44/34.26% 等）。只是它的“来源标签”仍写着旧的离线 Excel在线表，<b>不是 Excel</b>。要彻底改用 Excel，需要补充一份“用户级月埋点”Excel。<br/>
+  <b>关于 meta：</b>是数据校验/元信息（省份、月份、可用性标记），来源标签是历史遗留的离线 Excel，内容由脚本部分计算，不影响核心图表。</div>
+  <h3>5.4 仍残留离线 Excel的地方（已核实不影响线上运行）</h3>
+  <p>前端运行时（<code>static/</code>）已无任何去离线 Excel拉数的代码；线上看板打开后不再联网取数。残留只是 data.js 里上述两块的“来源标签”和旧值，以及以下已停用的旧文件：</p>
   <ul>
-    <li><code>build/fetch-data.py、wps_connector.py、kdocs_to_csv.py</code> —— 金山文档旧取数链路，已停用。</li>
-    <li><code>pages/*.data-source.json</code> —— 原来填金山文档 ID 的，已作废。</li>
+    <li><code>build/build_from_xlsx.py、(已删除)、(已删除)</code> —— 离线 Excel旧取数链路，已停用。</li>
+    <li><code>pages/*.data-source.json</code> —— 原来填离线 Excel ID 的，已作废。</li>
     <li><code>build/mock/*.json</code> —— 离线开发占位文件，不参与线上数据。</li>
   </ul>
 </section>
@@ -347,7 +347,7 @@ const html = `<!doctype html>
   <h3>当前数据状态（2026-09-18）</h3>
   <ul>
     <li>绝大多数图表已来自离线 Excel（终版/质效/用户行为记录）。</li>
-    <li>仅 <span class="bad">platformMonthly（平台分析·月维度）</span> 与 <span class="bad">meta（元信息）</span> 两块仍贴着旧的金山文档在线来源标签；前者有真实数据、待补 Excel，后者为遗留元信息。</li>
+    <li>仅 <span class="bad">platformMonthly（平台分析·月维度）</span> 与 <span class="bad">meta（元信息）</span> 两块仍贴着旧的离线 Excel在线来源标签；前者有真实数据、待补 Excel，后者为遗留元信息。</li>
     <li>部署脚本中的 GitHub PAT 已改为读环境变量，不再写死进仓库（旧 PAT 建议到 GitHub 吊销换新）。</li>
   </ul>
 </section>

@@ -30,8 +30,8 @@ node build/check.js static/pages/report.js
 - 未引入粉/暖色块；异常才用珊瑚红。
 - 未改动 `core/`、`index.html`、`style.v6.css`、`data.js`。
 
-## 接你的金山文档（取数）
-1. 拿到你的金山文档后，编辑 `static/pages/overview.data-source.json` 和 `province.data-source.json`，
+## 接你的离线 Excel（取数）
+1. 拿到你的离线 Excel后，编辑 `static/pages/overview.data-source.json` 和 `province.data-source.json`，
    填 `fileId` / 各 `feeds[].sheet` / `range` / `fields`（模板已给，含 overview/capability/agents/provinces 等域）。
 2. 把填好的 json 发给赵莹（她统一取数生成 `data.js`）。**你不在页面里写取数逻辑**。
 3. `report` 页不连数据源，无需填声明。

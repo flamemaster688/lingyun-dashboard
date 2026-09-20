@@ -3078,11 +3078,11 @@
     if (stEl) stEl.textContent = m.source ? "已连接" : "数据未接入";
     var sfName = document.getElementById("sfSourceName");
     if (sfName) {
-      sfName.textContent = m.source || "金山文档《数据验证》";
-      sfName.href = m.fileUrl || "#";
+      sfName.textContent = m.source || "离线 Excel（build/sources）";
+      sfName.removeAttribute("href");
     }
     var sfDoc = document.getElementById("sfDoc");
-    if (sfDoc) sfDoc.href = m.fileUrl || "#";
+    if (sfDoc) { sfDoc.removeAttribute("href"); sfDoc.textContent = "离线 Excel（已固化）"; }
   }
   function bindTopbarActions() {
     if (window._ovTopbarBound) return;

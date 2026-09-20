@@ -1,3 +1,6 @@
+> **注（2026-09-18 起）**：本项目已改为**纯离线**——数据源只有 `build/sources/` 下的 Excel，构建时固化进 `data.js`，运行时不联网、不接任何离线 Excel。
+> 下文若出现「Excel」且语义偏「在线协作」，均为历史描述，实际以离线 Excel 为准。
+
 # 灵运 BI 看板 · 6 项决策结论表
 
 > 用途：基座负责人（赵莹）在分发「基座包」前，把关键决策定下来、写清楚。
@@ -20,11 +23,11 @@
 
 ---
 
-## 2. 每个 Tab 对应金山文档 / sheet / 范围
+## 2. 每个 Tab 对应离线 Excel / sheet / 范围
 
-> ⚠️ **【待确认】各页对应的金山文档尚未提供，由个人提供。**
-> 下面给出「标准声明模板」，每位同事拿到自己的金山文档后，填到 `lingyun_dashboard/pages/<页面id>.data-source.json`，
-> 基座负责人用 `build/fetch-data.py` 统一取数、生成 `data.js`。页面本身**不写取数逻辑**。
+> ⚠️ **【待确认】各页对应的离线 Excel尚未提供，由个人提供。**
+> 下面给出「标准声明模板」，每位同事拿到自己的离线 Excel后，填到 `lingyun_dashboard/pages/<页面id>.data-source.json`，
+> 基座负责人用 `build/build_from_xlsx.py` 统一取数、生成 `data.js`。页面本身**不写取数逻辑**。
 
 标准声明模板（`pages/<id>.data-source.json`）字段：
 
@@ -32,8 +35,8 @@
 {
   "page": "overview",
   "owner": "吴超",
-  "docName": "金山文档文件名（待填）",
-  "fileId": "金山文档 file_id（待填，kdocs 连接器需要）",
+  "docName": "离线 Excel文件名（待填）",
+  "fileId": "离线 Excel file_id（待填，Excel 构建脚本（build/）需要）",
   "sheet": "工作表名（待填）",
   "range": "A1:Z100（取数范围，待填）",
   "fields": ["month", "calls", "personYear", "activeAgents"],
@@ -42,7 +45,7 @@
 }
 ```
 
-| Tab | 该页数据来自哪个业务域（见 `data-contract.json`） | 个人需提供的金山文档 |
+| Tab | 该页数据来自哪个业务域（见 `data-contract.json`） | 个人需提供的离线 Excel |
 |-----|--------------------------------------------------|----------------------|
 | 数据总览 | `overview`(kpis/monthly) + `capability` + `agents` + `provinces` | 吴超：总览/能力/智能体/省份相关表 |
 | 智能体 | `agents` + `tracking` | 羽琪：智能体清单 + 埋点(调用)表 |
@@ -52,7 +55,7 @@
 | 告警中心 | `alerts`（当前为空，先占位） | 羽琪：告警/异动明细表（数据源待建设） |
 | 报告生成 | 不连数据源 | 无 |
 
-> 注意：当前真实数据来自**单一**金山文档「数据验证」(`fileId` 见 `data.js` 的 meta)。未来若每页独立文档，
+> 注意：当前真实数据来自**单一**离线 Excel「数据验证」(`fileId` 见 `data.js` 的 meta)。未来若每页独立文档，
 > 取数脚本会把多份 JSON 合并进同一个 `data.js`（顶层键 `overview/agents/provinces/tracking/capability/centerYearRank/alerts`）。
 
 ---
@@ -124,7 +127,7 @@
 | # | 决策项 | 结论 | 状态 |
 |---|--------|------|------|
 | 1 | Tab 名称 / 页面 id / 负责人 | 7 个 tab，分工见第 3 节 | ✅ 已定 |
-| 2 | 各 tab 金山文档映射 | 用 `pages/<id>.data-source.json` 模板，个人填 fileId | ✅ 模板已就绪，待个人回填 |
+| 2 | 各 tab 离线 Excel映射 | 用 `pages/<id>.data-source.json` 模板，个人填 fileId | ✅ 模板已就绪，待个人回填 |
 | 3 | 3 人分工 | 赵莹(埋点/质效+基座)、吴超(总览/省份/报告)、羽琪(智能体/告警) | ✅ 已定 |
 | 4 | 部署平台 | **腾讯云 COS 静态网站托管**（首选）；Cloudflare Pages 备选 | ✅ 已定（待你提供账号/密钥） |
 | 5 | 协作方式 | **Git 私有仓（GitHub）** 已采用；打包 zip 分发备选 | ✅ 已定（2026-08-21 改为 GitHub） |
@@ -135,4 +138,4 @@
   - 若你不想开腾讯云账号 → 改用 **Cloudflare Pages**：你把 `dist/` 文件夹拖到 Cloudflare Pages 即可，无需给我任何密钥（国内偶发慢，可接受则最省事）。
 
 ### 剩余流程性待办（不卡决策，按节奏推进）
-- 吴超 / 羽琪 把各自的 `pages/<id>.data-source.json` 填好 `fileId/sheet/range` 回传 → 赵莹跑 `build/fetch-data.py merge` 接真实数据 → `bundle.js` 打包 → 部署发链接。
+- 吴超 / 羽琪 把各自的 `pages/<id>.data-source.json` 填好 `fileId/sheet/range` 回传 → 赵莹跑 `build/build_from_xlsx.py merge` 接真实数据 → `bundle.js` 打包 → 部署发链接。

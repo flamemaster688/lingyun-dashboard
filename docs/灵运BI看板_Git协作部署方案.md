@@ -1,3 +1,6 @@
+> **注（2026-09-18 起）**：本项目已改为**纯离线**——数据源只有 `build/sources/` 下的 Excel，构建时固化进 `data.js`，运行时不联网、不接任何离线 Excel。
+> 下文若出现「Excel」且语义偏「在线协作」，均为历史描述，实际以离线 Excel 为准。
+
 # 灵运 BI 看板 — Git 多人协作 + 零成本部署发版方案
 
 > 目标：把当前本地静态看板迁移到 **Git 仓库**（多人管理源码与数据），托管到 **完全免费** 的静态平台，并通过 **每个分支 / PR 自动生成的预览链接** 进行调试与发版。全程 **0 资金**。
@@ -43,7 +46,7 @@ lingyun-bi/                         ← Git 仓库根
 │       └── refresh-data.yml        ← （可选）定时/手动刷新数据并自动提交
 ├── build/                          ← 构建脚本与真源数据（纳入版本控制）
 │   ├── build_real.py               ← 汇总所有域 → static/data.js（含 platformMonthly）
-│   ├── dump_month_full.py         ← 平台分析-月 全量 dump：kdocs JSON → _raw_month_*.csv
+│   ├── dump_month_full.py         ← 平台分析-月 全量 dump：Excel JSON → _raw_month_*.csv
 │   ├── parse_kdocs_month.py       ← 单 sheet 解析（网格还原 → CSV）
 │   ├── gen_agents_overview.py
 │   └── sources/                    ← xlsx / csv 原始数据
@@ -71,9 +74,9 @@ lingyun-bi/                         ← Git 仓库根
 
 ## 2.1 平台分析（月度）页：数据源 / 用户级去重 / 构建链路
 
-「平台分析（月度）」页（注册 id = `pages-monthly`）接入**独立的在线文档「平台分析-月」**，与「平台分析（周）」是两份不同的源：
+「平台分析（月度）」页（注册 id = `pages-monthly`）接入**独立的离线 Excel「平台分析-月」**，与「平台分析（周）」是两份不同的源：
 
-- **文档**：「平台分析-月」`file_id = e9WB6rKPh1MuxmekMsGdrxBn4VZNyGuTY`（link: https://www.kdocs.cn/l/cv4JlshDWcju）
+- **文档**：「平台分析-月」`file_id = e9WB6rKPh1MuxmekMsGdrxBn4VZNyGuTY`（link: https://www.Excel.cn/l/cv4JlshDWcju）
 - **结构**：4 个月 sheet（5 / 6 / 7 / 8 月）；每 sheet 13 列、3 个并排 block：
   - 点击量 cols0-3：`province, NAME, PAGE, COUNT`
   - 访客人数 cols5-7：`province, PAGE, count`（**无 NAME**）
@@ -91,7 +94,7 @@ lingyun-bi/                         ← Git 仓库根
 > 更名原因：原"应用打开率"在周度数据下只能以「三级页点击 ÷ 三级页曝光」近似；月度文档自带 NAME，转化率改为页面级真实口径（点击 ÷ 曝光）。
 
 ### 构建链路（build_real.py 已内置 `parse_month_csv` + `platformMonthly` 域）
-1. kdocs `get_range_data` 拉 4 个月 sheet → 落盘 `_raw_month_<mm>.json`（由每日自动化经 `dump_month_full.py` 完成）。
+1. Excel `get_range_data` 拉 4 个月 sheet → 落盘 `_raw_month_<mm>.json`（由每日自动化经 `dump_month_full.py` 完成）。
 2. `dump_month_full.py` 把 JSON 还原网格 → `_raw_month_05.csv … _raw_month_08.csv`（列：`block,province,name,page,count`）。
 3. `build_real.py` 读取上述 CSV，聚合出顶层域 **`platformMonthly`**（含 `userKeysByMonth / mauByMonth / newByMonth / retByMonth / convRate / totalsByMonth / pageByMonth / moduleByMonth / provinceByMonth / provinceModuleByMonth`），写入 `static/data.js`。
 4. 前端 `pages/tracking-monthly.js` 经 `core/data.js` 的 `PAGE_DOMAINS["pages-monthly"] = ["platformMonthly"]` 读取该域渲染。
@@ -162,7 +165,7 @@ _prod_check/
 _deploy_stage/
 dist/
 0828_delivery/
-_smp/                       ← kdocs 样本临时落盘目录（验证用，勿入库）
+_smp/                       ← Excel 样本临时落盘目录（验证用，勿入库）
 
 # 系统
 .DS_Store
@@ -175,7 +178,7 @@ Thumbs.db
 
 ## 6. 每日数据自动刷新的衔接
 
-现在 WorkBuddy 的每日自动化（`automation-1786613878719`）会拉金山文档 → 生成 `data.js` → 推 Netlify。迁移后改为 **推 Git**：
+现在 WorkBuddy 的每日自动化（`automation-1786613878719`）会拉离线 Excel → 生成 `data.js` → 推 Netlify。迁移后改为 **推 Git**：
 
 **简化版（推荐）：**
 1. 自动化拉 **4 份** Kdocs 文档（数据验证 / 质效分析 / 平台分析(周) / **平台分析-月**）→ 更新 `build/sources/` → 跑 `build_real.py` 生成 `static/data.js`

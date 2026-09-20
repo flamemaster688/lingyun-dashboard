@@ -26,8 +26,8 @@ node build/check.js static/pages/alarms.js
 - 自己页面在浏览器无 console 报错。
 - 未改动 `core/`、`index.html`、`style.v6.css`、`data.js`。
 
-## 接你的金山文档（取数）
-1. 拿到你的金山文档后，编辑 `static/pages/agents.data-source.json` 和 `alarms.data-source.json`，
+## 接你的离线 Excel（取数）
+1. 拿到你的离线 Excel后，编辑 `static/pages/agents.data-source.json` 和 `alarms.data-source.json`，
    填 `fileId` / 各 `feeds[].sheet` / `range` / `fields`（模板已给）。
 2. 把填好的 json 发给赵莹（她统一取数生成 `data.js`）。**你不在页面里写取数逻辑**。
 3. 告警中心当前真实数据无告警明细（`alerts` 为空），你先把页面框架/缺口说明做出来，等数据源建设。
