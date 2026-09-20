@@ -30,13 +30,31 @@ if (!pwd) {
 
 const src = path.join(STATIC, "data.js");
 const raw = fs.readFileSync(src, "utf8");
-// 提取 window.LINGYUN_DATA = {...}; 中的 JSON 文本（保留原始对象，避免二次序列化改变结构）
-const m = raw.match(/window\.LINGYUN_DATA\s*=\s*(\{[\s\S]*\});?\s*$/);
-if (!m) {
+// 提取 window.LINGYUN_DATA = {...}; 中的 JSON 文本（保留原始对象，避免二次序列化改变结构）。
+// 用括号配平扫描定位 JSON 结束位置（data.js 末尾允许有附加赋值语句，如 LY_OVERVIEW_PANORAMA）。
+const _start = raw.indexOf("window.LINGYUN_DATA");
+const _brace = _start >= 0 ? raw.indexOf("{", _start) : -1;
+let _jsonText = null;
+if (_brace >= 0) {
+  let depth = 0, inStr = false, esc = false;
+  for (let i = _brace; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}") { depth--; if (depth === 0) { _jsonText = raw.slice(_brace, i + 1); break; } }
+  }
+}
+if (!_jsonText) {
   console.error("✗ 无法从 data.js 解析 window.LINGYUN_DATA");
   process.exit(1);
 }
-const jsonText = m[1];
+const jsonText = _jsonText;
 const jsonBuf = Buffer.from(jsonText, "utf8");
 
 // 1) gzip 压缩（级别 9，最大化压缩率以降低下载体积）

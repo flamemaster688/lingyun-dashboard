@@ -60,6 +60,7 @@ node build/bundle.js
   python build/build_from_xlsx.py     # 终版 Excel -> data.js 主数据
   python build/build_extra.py         # 质效分析 + 用户行为记录 -> 覆盖质效/埋点块
   python build/fix_data_sept18.py     # 重建省份域 + 回填智能体服务环节（补丁）
+  python build/inject_panorama.py     # 数据总览全景图域（LINGYUN_DATA.panorama，幂等，勿漏！）
   python build/strip_kdocs.py         # 清除任何离线 Excel痕迹（幂等兜底）
   node build/encrypt_data.js          # 加密 -> dist/data.js.enc（密码 12345678）
   node build/bundle.js                # 打包 -> dist/

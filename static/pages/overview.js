@@ -39,7 +39,7 @@
    * 交互：复用全局「时间范围 / 单位」筛选；多月份默认月均，可切累计；
    *       每张卡含 ⓘ计算口径、VS上期环比、年初至今 mini 趋势；环比标签旁「查看变动因素」按钮下钻环比变动因素。 */
   var SIM = window.LY_OVERVIEW_SIM || null;
-  var PANORAMA = window.LY_OVERVIEW_PANORAMA || null; // 推广/优秀/双周优秀 全景图（《推广+双周+优秀（总表）》1-6月）
+  var PANORAMA = window.LY_OVERVIEW_PANORAMA || (window.LINGYUN_DATA && window.LINGYUN_DATA.panorama) || null; // 推广/优秀/双周优秀 全景图（《推广+双周+优秀（总表）》1-6月）
   function promoRows() { return (PANORAMA && PANORAMA.rows) || []; }
   function promoMonths() { return (PANORAMA && PANORAMA.months) || []; }
   function promoScenes() { return (PANORAMA && PANORAMA.scenes) || []; }
