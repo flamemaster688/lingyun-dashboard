@@ -1,11 +1,11 @@
 /* ===== core/core.js ===== */
 /* core/core.js — 灵运 BI 看板·共享内核（全局脚本）
  * 由 build/split.py 从 lingyun.app.v10.js 自动拆分生成，请勿手工搬动页面渲染函数。
- * 职责：共享状态(D/FILTER/V)、工具函数、金山文档取数管线、tab 注册表与分发。
+ * 职责：共享状态(D/FILTER/V)、工具函数、离线数据管线、tab 注册表与分发。
  * 页面渲染函数全部位于 static/pages/*.js，通过 window.registerPage 注册。
  */
 /* v20260817.0 页面级筛选 + 页面级数据源，各 Tab 互不干扰 */
-/* 灵运平台 BI 看板 · 渲染逻辑（真实数据·金山文档「数据验证」）
+/* 灵运平台 BI 看板 · 渲染逻辑（真实数据·项目内离线 Excel 固化，不依赖任何在线文档）
  * 数据约定见 data.js：meta / overview / agents / provinces / tracking / capability / alerts
  * 缺数统一以 null 表示，渲染为 "/"。
  */
@@ -439,7 +439,7 @@
     renderCurrent(currentTab);
   }
 
-  /* ---------- 数据源：本地上传 / 金山文档（保留原逻辑，重置筛选） ---------- */
+  /* ---------- 数据源：本地上传 / 内置离线快照（Excel 固化，无在线文档） ---------- */
   var MAX_MB = 100;
   var ACCEPT = ["csv", "xlsx", "xls", "json"];
   function normHeader(h) { return String(h == null ? "" : h).trim().toLowerCase().replace(/\s+/g, ""); }
@@ -714,13 +714,9 @@
     }
     if (fi) fi.onchange = function () { if (fi.files && fi.files.length) handleFiles(fi.files); fi.value = ""; };
     if ($("btnTpl")) $("btnTpl").onclick = downloadTemplate;
-    if ($("btnCopyLink")) $("btnCopyLink").onclick = function () {
-      var u = (D.meta && D.meta.fileUrl) || "";
-      if (u && navigator.clipboard) { navigator.clipboard.writeText(u).then(function () { showUploadMsg("✅ 已复制文档链接", false); }, function () { showUploadMsg("复制失败，请手动复制：" + u, true); }); }
-      else if (u) { showUploadMsg("链接：" + u, false); }
-    };
+    if ($("btnCopyLink")) { var _b = $("btnCopyLink"); _b.textContent = "数据源说明"; _b.removeAttribute("href"); _b.onclick = function (e) { if (e && e.preventDefault) e.preventDefault(); showUploadMsg("数据来源：项目内离线 Excel（build/sources），构建时固化进 data.js，不依赖任何在线文档。", false); }; }
     if ($("kdMeta")) { var m = D.meta || {}; $("kdMeta").textContent = "数据截至 " + (m.period || "—") + " · 生成于 " + (m.generatedAt || "—"); }
-    if ($("srcLink")) $("srcLink").href = (D.meta && D.meta.fileUrl) || "#";
+    var _sl = $("srcLink"); if (_sl) { _sl.removeAttribute("href"); _sl.textContent = "离线 Excel（已固化）"; }
   }
 
   /* ---------- 页面工具栏渲染：筛选 + 数据源（每页独立） ---------- */
@@ -786,7 +782,7 @@
         '<button class="btn btn-ghost" id="btnDataSource-' + tab + '" type="button">数据源</button>' +
         '<div class="ds-panel" id="dsPanel-' + tab + '" hidden>' +
           '<div class="seg"><button class="seg-btn' + (srcType === "local" ? " active" : "") + '" id="srcLocal-' + tab + '" type="button">本地上传</button>' +
-            '<button class="seg-btn' + (srcType === "kdoc" ? " active" : "") + '" id="srcKdoc-' + tab + '" type="button">金山文档</button></div>' +
+            '<button class="seg-btn' + (srcType === "kdoc" ? " active" : "") + '" id="srcKdoc-' + tab + '" type="button">内置快照</button></div>' +
           '<div id="localPanel-' + tab + '"' + localHidden + '>' +
             '<div class="dropzone" id="dropzone-' + tab + '">' +
               '<input type="file" id="fileInput-' + tab + '" accept=".csv,.xlsx,.xls,.json" multiple hidden>' +
@@ -799,12 +795,11 @@
             '<div class="hint">按表名匹配：agents/智能体、provinces/省份等。上传后即时刷新本页。</div>' +
           '</div>' +
           '<div id="kdocPanel-' + tab + '"' + kdocHidden + '>' +
-            '<div class="src-line">金山文档 · <b>' + docName + '</b></div>' +
-            '<a class="src-link" id="srcLink-' + tab + '" href="' + (m.fileUrl || "#") + '" target="_blank" rel="noopener">打开在线文件 ↗</a>' +
-            '<div class="kd-status"><span class="kd-dot"></span>已连接 · 维护端同步</div>' +
-            '<div class="btn-row"><button class="btn btn-ghost" id="btnCopyLink-' + tab + '" type="button">复制文档链接</button>' +
+            '<div class="src-line">离线 Excel · <b>' + docName + '</b></div>' +
+            '<div class="kd-status"><span class="kd-dot"></span>已固化 · 随版本打包发布</div>' +
+            '<div class="btn-row"><button class="btn btn-ghost" id="btnCopyLink-' + tab + '" type="button">数据源说明</button>' +
               '<button class="btn btn-ghost" id="btnRefresh-' + tab + '" type="button">重新渲染</button></div>' +
-            '<div class="hint">更新在线文件后，由维护端重新取数部署；部署后点「重新渲染」生效。</div>' +
+            '<div class="hint">本项目不接任何在线文档：数据全部来自 build/sources 下的 Excel，构建时固化进 data.js。需更新时替换 Excel 后重新构建部署。</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -854,9 +849,7 @@
     var btnCopy = $("btnCopyLink-" + tab);
     if (btnCopy) btnCopy.onclick = function (e) {
       e.stopPropagation();
-      var u = (D.meta && D.meta.fileUrl) || "";
-      if (u && navigator.clipboard) { navigator.clipboard.writeText(u).then(function () { showUploadMsgForTab(tab, "✅ 已复制文档链接", false); }, function () { showUploadMsgForTab(tab, "复制失败，请手动复制：" + u, true); }); }
-      else if (u) { showUploadMsgForTab(tab, "链接：" + u, false); }
+      showUploadMsgForTab(tab, "数据来源：项目内离线 Excel（build/sources），构建时固化进 data.js，不依赖任何在线文档。", false);
     };
     var btnRefresh = $("btnRefresh-" + tab);
     if (btnRefresh) btnRefresh.onclick = function (e) { e.stopPropagation(); refreshFromServerForTab(tab); };
@@ -920,7 +913,7 @@
         '<button class="btn btn-ghost" id="btnDataSource-' + tab + '" type="button">数据源</button>' +
         '<div class="ds-panel" id="dsPanel-' + tab + '" hidden>' +
           '<div class="seg"><button class="seg-btn' + (srcType === "local" ? " active" : "") + '" id="srcLocal-' + tab + '" type="button">本地上传</button>' +
-            '<button class="seg-btn' + (srcType === "kdoc" ? " active" : "") + '" id="srcKdoc-' + tab + '" type="button">金山文档</button></div>' +
+            '<button class="seg-btn' + (srcType === "kdoc" ? " active" : "") + '" id="srcKdoc-' + tab + '" type="button">内置快照</button></div>' +
           '<div id="localPanel-' + tab + '"' + localHidden + '>' +
             '<div class="dropzone" id="dropzone-' + tab + '">' +
               '<input type="file" id="fileInput-' + tab + '" accept=".csv,.xlsx,.xls,.json" multiple hidden>' +
@@ -933,12 +926,11 @@
             '<div class="hint">按表名匹配：agents/智能体、provinces/省份等。上传后即时刷新本页。</div>' +
           '</div>' +
           '<div id="kdocPanel-' + tab + '"' + kdocHidden + '>' +
-            '<div class="src-line">金山文档 · <b>平台分析</b></div>' +
-            '<a class="src-link" id="srcLink-' + tab + '" href="' + (pt.fileUrl || "#") + '" target="_blank" rel="noopener">打开在线文件 ↗</a>' +
-            '<div class="kd-status"><span class="kd-dot"></span>已连接 · 周度埋点（' + weeks.length + ' 周）</div>' +
-            '<div class="btn-row"><button class="btn btn-ghost" id="btnCopyLink-' + tab + '" type="button">复制文档链接</button>' +
+            '<div class="src-line">离线 Excel · <b>平台分析（用户行为记录）</b></div>' +
+            '<div class="kd-status"><span class="kd-dot"></span>已固化 · 月埋点 ' + months.length + ' 个月 / 周埋点 ' + weeks.length + ' 周</div>' +
+            '<div class="btn-row"><button class="btn btn-ghost" id="btnCopyLink-' + tab + '" type="button">数据源说明</button>' +
               '<button class="btn btn-ghost" id="btnRefresh-' + tab + '" type="button">重新渲染</button></div>' +
-            '<div class="hint">更新在线文件后，由维护端重新取数部署；部署后点「重新渲染」生效。</div>' +
+            '<div class="hint">本项目不接任何在线文档：埋点数据来自 build/sources 下的 Excel，构建时固化进 data.js。需更新时替换 Excel 后重新构建部署。</div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -989,9 +981,7 @@
     var btnCopy = $("btnCopyLink-" + tab);
     if (btnCopy) btnCopy.onclick = function (e) {
       e.stopPropagation();
-      var u = pt.fileUrl || "";
-      if (u && navigator.clipboard) { navigator.clipboard.writeText(u).then(function () { showUploadMsgForTab(tab, "✅ 已复制文档链接", false); }, function () { showUploadMsgForTab(tab, "复制失败，请手动复制：" + u, true); }); }
-      else if (u) { showUploadMsgForTab(tab, "链接：" + u, false); }
+      showUploadMsgForTab(tab, "数据来源：项目内离线 Excel（build/sources），构建时固化进 data.js，不依赖任何在线文档。", false);
     };
     var btnRefresh = $("btnRefresh-" + tab);
     if (btnRefresh) btnRefresh.onclick = function (e) { e.stopPropagation(); refreshFromServerForTab(tab); };
@@ -1213,8 +1203,8 @@
 /* ===== core/data.js ===== */
 /*
  * core/data.js —— 统一数据接口（基座包·赵莹维护）
- * 页面只通过 window.LY.data 读数据，禁止直接 fetch 金山文档、禁止直接碰 window.LINGYUN_DATA。
- * 数据由赵莹用 build/fetch-data.py 走 kdocs 连接器统一取数，生成 data.js（window.LINGYUN_DATA）。
+ * 页面只通过 window.LY.data 读数据，禁止直接 fetch 任何在线文档、禁止直接碰 window.LINGYUN_DATA。
+ * 数据由构建脚本从 build/sources/ 下的离线 Excel 生成 data.js（window.LINGYUN_DATA），运行时不联网。
  *
  * 契约见 data-contract.json：顶层键 meta/overview/agents/provinces/tracking/capability/centerYearRank/alerts。
  */
@@ -4366,11 +4356,11 @@
     if (stEl) stEl.textContent = m.source ? "已连接" : "数据未接入";
     var sfName = document.getElementById("sfSourceName");
     if (sfName) {
-      sfName.textContent = m.source || "金山文档《数据验证》";
-      sfName.href = m.fileUrl || "#";
+      sfName.textContent = m.source || "离线 Excel（build/sources）";
+      sfName.removeAttribute("href");
     }
     var sfDoc = document.getElementById("sfDoc");
-    if (sfDoc) sfDoc.href = m.fileUrl || "#";
+    if (sfDoc) { sfDoc.removeAttribute("href"); sfDoc.textContent = "离线 Excel（已固化）"; }
   }
   function bindTopbarActions() {
     if (window._ovTopbarBound) return;
@@ -7727,7 +7717,7 @@
 /* ===== pages/tracking.js ===== */
 /* pages/tracking.js — 平台分析（埋点）（负责人：赵莹）
  * 只读 core/core.js 暴露的全局状态（D / FILTER / V），不写取数逻辑。
- * 数据源：金山文档·平台分析（atbL8BymF1MWRdUn3wue1xkekdEskSQYj），按周统计埋点 PV/UV/曝光。
+ * 数据源：离线 Excel《用户行为记录》（build/sources，已固化进 data.js），按周/月统计埋点 PV/UV/曝光。
  * 本页按《页面埋点数据分析报告》结构重构：结论总览 → 核心指标 → 总体趋势 → 菜单结构 →
  *   标注模块 → 灵犀深度分析 → 页面维度 → 省份维度 → 省份×模块交叉；每个图表后附分析。
  * 时间维度由本页专属筛选（全部周 / 按周 / 按月）驱动；省份筛选作用于省份维度与交叉热力。
@@ -8300,7 +8290,7 @@
     disposeLocalAll();
 
     if (!pt || !pt.weeks || !pt.weeks.length) {
-      var f1 = $("pgKpi"); if (f1) f1.innerHTML = '<div class="chart-fallback">暂无平台埋点数据（请确认「平台分析」在线文件已取数）。</div>';
+      var f1 = $("pgKpi"); if (f1) f1.innerHTML = '<div class="chart-fallback">暂无平台埋点数据（请确认 build/sources 下的 Excel 已构建进 data.js）。</div>';
       var c0 = $("pgConclusion"); if (c0) c0.innerHTML = "";
       var da0 = $("pgDrillArea"); if (da0) da0.style.display = "none";
       return;
@@ -8323,7 +8313,7 @@
 
     // ===== 顶部说明 =====
     noteBox("pgProvNote",
-      "数据源：" + (pt.source || "金山文档·平台分析") + "；" + scopeNote +
+      "数据源：" + (pt.source || "离线 Excel·用户行为记录") + "；" + scopeNote +
       (ap ? "；省份：" + ap.join("、") : "；省份：全国") +
       "。页面维度/菜单结构/趋势为全站口径，省份筛选仅作用于省份维度、灵犀渗透与交叉热力。");
 
@@ -8532,7 +8522,7 @@
 /* ===== pages/tracking-monthly.js ===== */
 /* pages/tracking-monthly.js — 平台分析（月度）
  * 设计依据：《埋点数据看板·指标口径与下钻设计方案》（2026-08-28）
- * 数据源：V.platformMonthly（金山文档「平台分析-月」· 用户级埋点）
+ * 数据源：V.platformMonthly（离线 Excel「平台分析-月」· 用户级埋点，已固化）
  *   - 每月一个 sheet，含 点击量 / 访客人数 / 曝光次数 三个 block
  *   - 点击量 & 曝光次数 block 含 NAME 字段（用户唯一 ID = 省份-姓名）→ 用户级去重
  * 指标口径：
@@ -8868,7 +8858,7 @@ var PFM_PAGE_MENU = [[2, "个人探索", "AI问答", null, null], [3, "个人探
     delete window.__pfmM; // 数据可能刷新，重算
     var M = getM();
     if (!M || !M.months.length) {
-      ["pfmKpi", "pfmTrend", "pfmModTree", "pfmInsight"].forEach(function (id) { var b = $(id); if (b) b.innerHTML = '<div class="chart-fallback">暂无平台月度数据（请确认「平台分析-月」在线文件已取数并 build）。</div>'; });
+      ["pfmKpi", "pfmTrend", "pfmModTree", "pfmInsight"].forEach(function (id) { var b = $(id); if (b) b.innerHTML = '<div class="chart-fallback">暂无平台月度数据（请确认 build/sources 下的 Excel 已构建进 data.js）。</div>'; });
       return;
     }
     MOD_DRILL = { l1: null, l2: null };
@@ -8889,7 +8879,7 @@ var PFM_PAGE_MENU = [[2, "个人探索", "AI问答", null, null], [3, "个人探
   function renderNote(M, sels) {
     var selLabel = sels.length === M.months.length ? "全部 " + M.months.length + " 个月" : (sels.map(monthLabel).join("、") + "（" + sels.length + " 个月）");
     var pm = (window.LY.getView() || {}).platformMonthly || {};
-    var srcTxt = (pm.source || "金山文档·平台分析-月") + (pm.isSample ? "（⚠ 样本验证数据，非真实全量；运行全量 dump 后替换）" : "");
+    var srcTxt = (pm.source || "离线 Excel·平台分析-月") + (pm.isSample ? "（⚠ 样本验证数据，非真实全量）" : "");
     noteBox("pfmProvNote", "数据源：" + srcTxt + "；口径：用户级真实去重（省份-姓名）。时间筛选=本页月份（单选/多选，当前：" + selLabel + "）。MAU/新增/留存/转化率均为真实值。");
   }
   function renderMonthChips(M) {
@@ -11106,7 +11096,7 @@ function nationalYearTotals(R) {
     var mTxt = (FILTER.dim === "month" && FILTER.months.length)
       ? FILTER.months.slice().sort(function (a, b) { return parseInt(a, 10) - parseInt(b, 10); }).join("、")
       : "全周期（1-7月）";
-    noteBox("qeProvNote", "数据源：金山文档·质效分析（等效人年按分中心/单位汇总）+ sheet3「数据月度汇总」。上方 9 张卡片随顶部「时间范围 / 单位」筛选动态变化：当前 " + mTxt + " · " + scopeTxt + "。第 1 张「总体（2026）」右上角可勾选 6 项能力（默认四项），数值与同比实时重算；灵运平台、智能立单为 2026 年新增、无 2025 基线，其同比显示「/」。2025 总体固定含 5 项（含智能点选）。");
+    noteBox("qeProvNote", "数据源：离线 Excel·质效分析（等效人年按分中心/单位汇总）+ sheet3「数据月度汇总」。上方 9 张卡片随顶部「时间范围 / 单位」筛选动态变化：当前 " + mTxt + " · " + scopeTxt + "。第 1 张「总体（2026）」右上角可勾选 6 项能力（默认四项），数值与同比实时重算；灵运平台、智能立单为 2026 年新增、无 2025 基线，其同比显示「/」。2025 总体固定含 5 项（含智能点选）。");
   }
 
 function renderQuality() {
