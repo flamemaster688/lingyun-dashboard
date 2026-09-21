@@ -471,18 +471,22 @@
       var unitEl = el.nextElementSibling;
       if (unitEl && unitEl.classList.contains("val-unit")) unitEl.textContent = finalUnit;
       if (reduce || raw === 0) { el.textContent = finalNum; return; }
-      el.textContent = "0";
-      var start = performance.now();
-      var dur = 720;
+      /* 先写终值作基线：即便 requestAnimationFrame / performance 在个别环境下不可用，
+       * 也保证真实数据一定显示，不会停留在「0」造成「没数据」误判。 */
+      el.textContent = finalNum;
+      var startT = null, dur = 720;
       var ease = function (t) { return 1 - Math.pow(1 - t, 4); };
       function step(now) {
-        var p = Math.min(1, (now - start) / dur);
-        var v = raw * ease(p);
-        el.textContent = formatByFmt(v, fmt, finalUnit).replace(/\s*(人年|万|亿|ms|%)$/, "");
-        if (p < 1) requestAnimationFrame(step);
-        else el.textContent = finalNum;
+        try {
+          if (startT === null) startT = now;
+          var p = Math.min(1, (now - startT) / dur);
+          var v = raw * ease(p);
+          el.textContent = formatByFmt(v, fmt, finalUnit).replace(/\s*(人年|万|亿|ms|%)$/, "");
+          if (p < 1) requestAnimationFrame(step);
+          else el.textContent = finalNum;
+        } catch (e) { el.textContent = finalNum; }
       }
-      requestAnimationFrame(step);
+      try { requestAnimationFrame(step); } catch (e) { el.textContent = finalNum; }
     });
   }
   /* KPI 卡专用：把尾随单位（亿/万/人年）拆为小字 val-unit，并把 raw 数字挂在 data-* 供 count-up */
@@ -1072,6 +1076,7 @@
       /* —— 模型计费金额 · 环比变动因素（省份→应用 层级拆解） —— */
       ".fc-note{font-size:11.5px;color:#475569;background:#f8fafc;border:1px dashed #e5e7eb;border-radius:8px;padding:8px 10px;margin:10px 0 6px;line-height:1.5}" +
       ".fc-note b{color:#1f2937}" +
+      ".fc-note-soft{font-size:10.5px;color:#94a3b8;background:transparent;border:1px solid #eef2f7;border-radius:8px;padding:6px 10px;margin:4px 0 8px;line-height:1.5}" +
       ".fc-drill-guide{display:flex;align-items:center;gap:8px;background:#eff6ff;color:#1e40af;border:1px solid #dbeafe;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:11.5px;font-weight:700}" +
       ".fc-drill-guide b{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#2563eb;color:#fff;font-size:10px}" +
       ".fc-drill-guide span{color:#64748b;font-weight:600}" +
@@ -1109,18 +1114,21 @@
   /* 应用调用量榜单（2026-08-25 改：数据源改为"智能体清单（各省）"col9 应用调用量，由 build_sim_excel.py 汇总）
    * 全网 → window.LINGYUN_DATA.appsCallsNational[month]；省份 → appsCallsByProv[prov][month]
    * 兼容旧窗口数据 LY_OVERVIEW_APPS.byAppTop（开发态演示） */
+  /* 数据源可能是「单应用数组」也可能是「汇总数字」（生产态各省/全国为合计值，无单应用拆分）。
+   * 必须保证返回始终是数组，否则下游 .forEach 会抛错导致整个「查看变动因素」弹框打不开。 */
+  function arrOf(v) { return Array.isArray(v) ? v : []; }
   function appsTop(prov, month) {
     var D = window.LINGYUN_DATA || {};
-    if (prov === "全网" && D.appsCallsNational && D.appsCallsNational[month]) return D.appsCallsNational[month];
-    if (D.appsCallsByProv && D.appsCallsByProv[prov] && D.appsCallsByProv[prov][month]) return D.appsCallsByProv[prov][month];
+    if (prov === "全网" && D.appsCallsNational && D.appsCallsNational[month]) return arrOf(D.appsCallsNational[month]);
+    if (D.appsCallsByProv && D.appsCallsByProv[prov] && D.appsCallsByProv[prov][month]) return arrOf(D.appsCallsByProv[prov][month]);
     var A = window.LY_OVERVIEW_APPS;
-    if (A && A.byAppTop && A.byAppTop[prov]) return A.byAppTop[prov][month] || [];
+    if (A && A.byAppTop && A.byAppTop[prov]) return arrOf(A.byAppTop[prov][month]);
     return [];
   }
   function appsTokensTop(prov, month) {
     var D = window.LINGYUN_DATA || {};
-    if (prov === "全网" && D.appsTokensNational && D.appsTokensNational[month]) return D.appsTokensNational[month];
-    if (D.appsTokensByProv && D.appsTokensByProv[prov] && D.appsTokensByProv[prov][month]) return D.appsTokensByProv[prov][month];
+    if (prov === "全网" && D.appsTokensNational && D.appsTokensNational[month]) return arrOf(D.appsTokensNational[month]);
+    if (D.appsTokensByProv && D.appsTokensByProv[prov] && D.appsTokensByProv[prov][month]) return arrOf(D.appsTokensByProv[prov][month]);
     return [];
   }
   function trackingTop(month) {
@@ -1129,14 +1137,14 @@
   }
   function appsCostTop(prov, month) {
     var D = window.LINGYUN_DATA || {};
-    if (prov === "全网" && D.appsCostNational && D.appsCostNational[month]) return D.appsCostNational[month];
-    if (D.appsCostByProv && D.appsCostByProv[prov] && D.appsCostByProv[prov][month]) return D.appsCostByProv[prov][month];
+    if (prov === "全网" && D.appsCostNational && D.appsCostNational[month]) return arrOf(D.appsCostNational[month]);
+    if (D.appsCostByProv && D.appsCostByProv[prov] && D.appsCostByProv[prov][month]) return arrOf(D.appsCostByProv[prov][month]);
     return [];
   }
   function appsPersonYearTop(prov, month) {
     var D = window.LINGYUN_DATA || {};
-    if (prov === "全网" && D.appsPersonYearNational && D.appsPersonYearNational[month]) return D.appsPersonYearNational[month];
-    if (D.appsPersonYearByProv && D.appsPersonYearByProv[prov] && D.appsPersonYearByProv[prov][month]) return D.appsPersonYearByProv[prov][month];
+    if (prov === "全网" && D.appsPersonYearNational && D.appsPersonYearNational[month]) return arrOf(D.appsPersonYearNational[month]);
+    if (D.appsPersonYearByProv && D.appsPersonYearByProv[prov] && D.appsPersonYearByProv[prov][month]) return arrOf(D.appsPersonYearByProv[prov][month]);
     return [];
   }
   function appsDelta(prov, month) { var A = window.LY_OVERVIEW_APPS; if (!A || !A.byAppDelta[prov]) return []; return A.byAppDelta[prov][month] || []; }
@@ -2778,7 +2786,7 @@
     var html = '<div class="factor-modal"><div class="factor-hd"><div class="factor-title">环比变动因素拆解 · ' + esc(mt.name) + '</div><button class="factor-close" id="factorClose" type="button">×</button></div>' +
       '<div class="factor-sub">' + esc(month) + ' vs ' + esc(pm || "—") + ' · 范围：' + esc(sl.text) + (pm ? '' : '　（无上期对照）') + '</div>' +
       '<div class="factor-overview">' + ovItem('本期合计', fmtMetric(mt, natCur)) + ovItem('上期合计', pm ? fmtMetric(mt, natPrev) : '—') + ovItem('总增减', pct == null ? '—' : '<span class="fc-delta ' + (pct >= 0 ? 'up' : 'down') + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span>') + '</div>' +
-      '<div class="fc-note">省份层面按当前指标直接计算环比；展开省份可查看该省应用 TOP5，应用数据与趋势榜单使用同一 Excel 明细口径。</div><div class="fc-drill-guide"><b>1</b>省份环比因素<span>→</span><b>2</b>该省应用环比因素 TOP5</div><div class="fc-hier">';
+      '<div class="fc-note">省份层面按当前指标直接计算环比；展开省份可查看该省应用 TOP5，应用数据与趋势榜单使用同一 Excel 明细口径。</div><div class="fc-drill-guide"><b>1</b>省份环比因素<span>→</span><b>2</b>该省应用环比因素 TOP5</div><div class="fc-note fc-note-soft">注：当前数据源（各省 / 全国汇总）仅含汇总值，不含单应用拆分，应用级明细暂不可用，本弹框下钻仅展示省份层因素。</div><div class="fc-hier">';
     blocks.forEach(function (b, i) {
       var cls = b.delta >= 0 ? 'up' : 'down', arrow = b.delta > 0 ? '▲' : (b.delta < 0 ? '▼' : '•'), pPct = b.prev ? b.delta / b.prev * 100 : null;
       html += '<div class="fc-prov"><div class="fc-prov-hd"><span class="fc-prov-rank">' + (i + 1) + '</span><span class="fc-prov-name">' + esc(b.name) + '</span><span class="fc-prov-coef">影响系数 <b class="' + cls + '">' + (b.coef >= 0 ? '+' : '') + b.coef.toFixed(1) + '%</b></span><span class="fc-prov-delta ' + cls + '">' + arrow + ' ' + (b.delta >= 0 ? '+' : '') + fmtMetric(mt, b.delta) + (pPct == null ? '' : '（' + (pPct >= 0 ? '+' : '') + pPct.toFixed(1) + '%）') + '</span></div><div class="fc-prov-bar"><i class="' + cls + '" style="width:' + (Math.abs(b.delta) / maxProv * 100).toFixed(1) + '%"></i></div>';
@@ -2856,7 +2864,7 @@
       '<div class="factor-sub">' + esc(month) + ' vs ' + esc(pm || "—") + ' · 范围：' + esc(sl.text) + (pm ? '' : '　（无上期对照）') + ' · 当前弹窗仅拆解「' + esc(mt.name) + '」</div>' +
       '<div class="factor-overview">' + ovItem('本期合计', fmtMetric(mt, natCur)) + ovItem('上期合计', pm ? fmtMetric(mt, natPrev) : '—') + ovItem('总增减', pct == null ? '—' : '<span class="fc-delta ' + (pct >= 0 ? 'up' : 'down') + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span>') + '</div>' +
       '<div class="fc-note">' + sourceNote + '省份层面按《关键数据总览（月）（各省）》对应字段计算环比；应用层面展示该省变动幅度 TOP5，并按创建时间处理新增/退出口径。</div>' +
-      '<div class="fc-drill-guide"><b>1</b>省份环比因素<span>→</span><b>2</b>' + esc(appLabel) + '环比因素 TOP5</div><div class="fc-hier">';
+      '<div class="fc-drill-guide"><b>1</b>省份环比因素<span>→</span><b>2</b>' + esc(appLabel) + '环比因素 TOP5</div><div class="fc-note fc-note-soft">注：当前数据源（各省 / 全国汇总）仅含汇总值，不含单应用拆分，应用级明细暂不可用，本弹框下钻仅展示省份层因素。</div><div class="fc-hier">';
     blocks.forEach(function (b, i) {
       var cls = b.delta >= 0 ? 'up' : 'down', arrow = b.delta > 0 ? '▲' : (b.delta < 0 ? '▼' : '•'), pPct = b.prev ? b.delta / b.prev * 100 : null;
       html += '<div class="fc-prov"><div class="fc-prov-hd"><span class="fc-prov-rank">' + (i + 1) + '</span><span class="fc-prov-name">' + esc(b.name) + '</span><span class="fc-prov-coef">影响系数 <b class="' + cls + '">' + (b.coef >= 0 ? '+' : '') + b.coef.toFixed(1) + '%</b></span><span class="fc-prov-delta ' + cls + '">' + arrow + ' ' + (b.delta >= 0 ? '+' : '') + fmtMetric(mt, b.delta) + (pPct == null ? '' : '（' + (pPct >= 0 ? '+' : '') + pPct.toFixed(1) + '%）') + '</span></div><div class="fc-prov-bar"><i class="' + cls + '" style="width:' + (Math.abs(b.delta) / maxProv * 100).toFixed(1) + '%"></i></div>';
@@ -2930,7 +2938,7 @@
     var html = '<div class="factor-modal"><div class="factor-hd"><div class="factor-title">环比变动因素拆解 · ' + esc(mt.name) + '</div><button class="factor-close" id="factorClose" type="button">×</button></div>' +
       '<div class="factor-sub">' + esc(month) + ' vs ' + esc(pm || "—") + ' · 范围：' + esc(sl.text) + (pm ? '' : '　（无上期对照）') + '</div>' +
       '<div class="factor-overview">' + ovItem('本期合计', fmtMetric(mt, natCur)) + ovItem('上期合计', pm ? fmtMetric(mt, natPrev) : '—') + ovItem('总增减', pct == null ? '—' : '<span class="fc-delta ' + (pct >= 0 ? 'up' : 'down') + '">' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%</span>') + '</div>' +
-      '<div class="fc-note">省份层面按 Excel《关键数据总览（月）（各省）》节约人年字段拆解；应用层面仅纳入推广、优秀、双周优秀智能体，并按《推广+双周+优秀（总表）》月度节约人年字段匹配。当前省级指标为 ' + esc(month) + ' vs ' + esc(pm || '—') + '，应用明细最新可用月份为 ' + esc(pyDetailMonth || '—') + (pyDetailPrev ? ' vs ' + esc(pyDetailPrev) : '') + '。</div><div class="fc-drill-guide"><b>1</b>省份环比因素<span>→</span><b>2</b>推广 / 优秀 / 双周优秀应用因素 TOP5</div><div class="fc-hier">';
+      '<div class="fc-note">省份层面按 Excel《关键数据总览（月）（各省）》节约人年字段拆解；应用层面仅纳入推广、优秀、双周优秀智能体，并按《推广+双周+优秀（总表）》月度节约人年字段匹配。当前省级指标为 ' + esc(month) + ' vs ' + esc(pm || '—') + '，应用明细最新可用月份为 ' + esc(pyDetailMonth || '—') + (pyDetailPrev ? ' vs ' + esc(pyDetailPrev) : '') + '。</div><div class="fc-drill-guide"><b>1</b>省份环比因素<span>→</span><b>2</b>推广 / 优秀 / 双周优秀应用因素 TOP5</div><div class="fc-note fc-note-soft">注：当前数据源（各省 / 全国汇总）仅含汇总值，不含单应用拆分，应用级明细暂不可用，本弹框下钻仅展示省份层因素。</div><div class="fc-hier">';
     blocks.forEach(function (b, i) {
       var cls = b.delta >= 0 ? 'up' : 'down', arrow = b.delta > 0 ? '▲' : (b.delta < 0 ? '▼' : '•'), pPct = b.prev ? b.delta / b.prev * 100 : null;
       html += '<div class="fc-prov"><div class="fc-prov-hd"><span class="fc-prov-rank">' + (i + 1) + '</span><span class="fc-prov-name">' + esc(b.name) + '</span><span class="fc-prov-coef">影响系数 <b class="' + cls + '">' + (b.coef >= 0 ? '+' : '') + b.coef.toFixed(1) + '%</b></span><span class="fc-prov-delta ' + cls + '">' + arrow + ' ' + (b.delta >= 0 ? '+' : '') + fmtMetric(mt, b.delta) + (pPct == null ? '' : '（' + (pPct >= 0 ? '+' : '') + pPct.toFixed(1) + '%）') + '</span></div><div class="fc-prov-bar"><i class="' + cls + '" style="width:' + (Math.abs(b.delta) / maxProv * 100).toFixed(1) + '%"></i></div>';
@@ -2979,6 +2987,7 @@
       '</div>' +
       '<div class="fc-note">影响系数 = 该项变动 ÷ 总体变动。<b>省份层面</b> ÷ 全国总增减；<b>应用层面</b> ÷ 该省变动。用于快速定位关键拉动 / 拖累因素。</div>' +
       '<div class="fc-drill-guide"><b>1</b>省份环比因素<span>→</span><b>2</b>该省应用环比因素 TOP5</div>' +
+      '<div class="fc-note fc-note-soft">注：当前数据源（各省 / 全国汇总）仅含汇总值，不含单应用拆分，应用级明细暂不可用，本弹框下钻仅展示省份层因素。</div>' +
       '<div class="fc-hier">';
     blocks.forEach(function (b, i) {
       var pcls = b.delta >= 0 ? 'up' : 'down';
