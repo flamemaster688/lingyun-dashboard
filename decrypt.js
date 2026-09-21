@@ -177,75 +177,102 @@
     return new Response(ds.readable).arrayBuffer().then(function (ab) { return new Uint8Array(ab); });
   }
 
+  // ---------- 核心：解密（可复用） ----------
+  // 把二进制密文（LYE1 头）解密为 JS 对象。pwd 为访问密码。
+  function decryptBufToObj(buf, password) {
+    var u = new Uint8Array(buf);
+    if (u.length < 22 || String.fromCharCode(u[0], u[1], u[2], u[3]) !== "LYE1") {
+      throw new Error("加密文件格式不兼容，请重新生成加密数据");
+    }
+    var dv = new DataView(buf);
+    var comp = u[5];
+    var iter = dv.getUint32(6, false);
+    var saltLen = dv.getUint32(10, false);
+    var ivLen = dv.getUint32(14, false);
+    var tagLen = dv.getUint32(18, false);
+    var off = 22;
+    var salt = u.subarray(off, off + saltLen); off += saltLen;
+    var iv = u.subarray(off, off + ivLen); off += ivLen;
+    var tag = u.subarray(off, off + tagLen); off += tagLen;
+    var ct = u.subarray(off); // 密文（tag 已单独取出）
+    // 重要：浏览器 Web Crypto 没有 setAuthTag，要求 authTag 必须拼在密文尾部一起传入；
+    // 而加密文件格式把 tag 单独放在密文之前，因此这里必须手动拼接回去，否则校验永远失败。
+    var ctWithTag = new Uint8Array(ct.length + tag.length);
+    ctWithTag.set(ct, 0);
+    ctWithTag.set(tag, ct.length);
+
+    return window.crypto.subtle
+      .importKey("raw", new TextEncoder().encode(password), { name: "PBKDF2" }, false, ["deriveKey"])
+      .then(function (baseKey) {
+        return window.crypto.subtle.deriveKey(
+          { name: "PBKDF2", salt: salt, iterations: iter, hash: "SHA-256" },
+          baseKey,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["decrypt"]
+        );
+      })
+      .then(function (key) {
+        return window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, ctWithTag);
+      })
+      .then(function (plainBuf) {
+        var bytes = (comp === 1) ? null : new Uint8Array(plainBuf);
+        return (comp === 1) ? gunzip(new Uint8Array(plainBuf)) : bytes;
+      })
+      .then(function (bytes) {
+        return JSON.parse(new TextDecoder().decode(bytes));
+      });
+  }
+
+  var sessionPwd = null; // 解密成功后保存密码，供分块按需解密复用
+
+  // 按需解密「智能体逐月明细」分块（data-agents.js.enc）并写入 window.LINGYUN_AGENT_MONTHLY。
+  // 由 core.js 的 ensureAgentMonthly 在「智能体」页需要时才调用，避免首屏解析 22MB 明细。
+  function loadAgentChunk(cb) {
+    fetchBinaryProgress("data-agents.js.enc", function (p) {
+      setMsg("加载智能体明细中 " + Math.round(p * 100) + "%", false);
+    }).then(function (buf) {
+      return decryptBufToObj(buf, sessionPwd);
+    }).then(function (arr) {
+      window.LINGYUN_AGENT_MONTHLY = arr;
+      if (cb) cb(null, arr);
+    }).catch(function (err) {
+      console.warn("[decrypt] 智能体分块加载失败:", err && err.message);
+      if (cb) cb(err);
+    });
+  }
+
   // ---------- 核心：解密 + 启动 ----------
   function decryptAndBoot(pwd) {
+    sessionPwd = pwd;
     setMsg("下载加密数据中…", false);
     setProgress(0);
     return fetchBinaryProgress(ENC_URL, function (p) {
       setProgress(p);
       setMsg("下载中 " + Math.round(p * 100) + "%", false);
     }).then(function (buf) {
-      var u = new Uint8Array(buf);
-      if (u.length < 22 || String.fromCharCode(u[0], u[1], u[2], u[3]) !== "LYE1") {
-        throw new Error("加密文件格式不兼容，请重新生成 data.js.enc");
+      return decryptBufToObj(buf, pwd);
+    }).then(function (obj) {
+      window.LINGYUN_DATA = obj;
+      // 关键：阻止 core.js 自动 init，等全部脚本（含页面）加载完成后再显式调用
+      window.__LY_DEFER_INIT__ = true;
+      // 暴露分块按需解密能力给运行时
+      window.LY = window.LY || {};
+      window.LY.loadAgentChunk = loadAgentChunk;
+      if (SCRIPTS.length === 0) {
+        throw new Error("未配置 __DASH_SCRIPTS__，无法加载看板脚本");
       }
-      var dv = new DataView(buf);
-      var comp = u[5];
-      var iter = dv.getUint32(6, false);
-      var saltLen = dv.getUint32(10, false);
-      var ivLen = dv.getUint32(14, false);
-      var tagLen = dv.getUint32(18, false);
-      var off = 22;
-      var salt = u.subarray(off, off + saltLen); off += saltLen;
-      var iv = u.subarray(off, off + ivLen); off += ivLen;
-      var tag = u.subarray(off, off + tagLen); off += tagLen;
-      var ct = u.subarray(off); // 密文（tag 已单独取出）
-      // 重要：浏览器 Web Crypto 没有 setAuthTag，要求 authTag 必须拼在密文尾部一起传入；
-      // 而加密文件格式把 tag 单独放在密文之前，因此这里必须手动拼接回去，否则校验永远失败。
-      var ctWithTag = new Uint8Array(ct.length + tag.length);
-      ctWithTag.set(ct, 0);
-      ctWithTag.set(tag, ct.length);
-
-      setMsg("解密中…", false);
-      setProgress(null);
-      return window.crypto.subtle
-        .importKey("raw", new TextEncoder().encode(pwd), { name: "PBKDF2" }, false, ["deriveKey"])
-        .then(function (baseKey) {
-          return window.crypto.subtle.deriveKey(
-            { name: "PBKDF2", salt: salt, iterations: iter, hash: "SHA-256" },
-            baseKey,
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["decrypt"]
-          );
-        })
-        .then(function (key) {
-          return window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, ctWithTag);
-        })
-        .then(function (plainBuf) {
-          var bytes = (comp === 1) ? null : new Uint8Array(plainBuf);
-          return (comp === 1) ? gunzip(new Uint8Array(plainBuf)) : bytes;
-        })
-        .then(function (bytes) {
-          var obj = JSON.parse(new TextDecoder().decode(bytes));
-          window.LINGYUN_DATA = obj;
-          // 关键：阻止 core.js 自动 init，等全部脚本（含页面）加载完成后再显式调用
-          window.__LY_DEFER_INIT__ = true;
-          if (SCRIPTS.length === 0) {
-            throw new Error("未配置 __DASH_SCRIPTS__，无法加载看板脚本");
-          }
-          var chain = Promise.resolve();
-          for (var i = 0; i < SCRIPTS.length; i++) {
-            (function (src) { chain = chain.then(function () { return loadScript(src); }); })(SCRIPTS[i]);
-          }
-          return chain.then(function () {
-            if (window.LY && typeof window.LY.init === "function") {
-              window.LY.init();
-            } else {
-              throw new Error("未找到 window.LY.init，看板可能无法初始化");
-            }
-          });
-        });
+      var chain = Promise.resolve();
+      for (var i = 0; i < SCRIPTS.length; i++) {
+        (function (src) { chain = chain.then(function () { return loadScript(src); }); })(SCRIPTS[i]);
+      }
+      return chain.then(function () {
+        if (window.LY && typeof window.LY.init === "function") {
+          window.LY.init();
+        } else {
+          throw new Error("未找到 window.LY.init，看板可能无法初始化");
+        }
+      });
     });
   }
 })();
