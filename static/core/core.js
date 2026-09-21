@@ -12,7 +12,8 @@
   "use strict";
   var DEFAULT_DATA = window.LINGYUN_DATA || {};
   var instMap = {};
-  window.LY = window.LY || { pages: {} };
+  window.LY = window.LY || {};
+  window.LY.pages = window.LY.pages || {};
   window.registerPage = function (cfg) { window.LY.pages[cfg.id] = cfg; };
   window.optimizePage = function (id) { var p = window.LY.pages[id]; if (p && p.render) p.render(); };
 
@@ -1225,6 +1226,7 @@
   // 暴露 init，供解密引导(decrypt.js)在全部脚本(含页面)就绪后显式调用，
   // 避免动态加载时 core.js 在页面尚未注册就自动 init 导致首屏空白。
   window.LY = window.LY || {};
+  window.LY.pages = window.LY.pages || {};
   window.LY.init = init;
   if (window.__LY_DEFER_INIT__) {
     /* 由 decrypt.js 在密码校验通过、全部脚本加载完成后显式调用 window.LY.init() */

@@ -256,8 +256,8 @@
       window.LINGYUN_DATA = obj;
       // 关键：阻止 core.js 自动 init，等全部脚本（含页面）加载完成后再显式调用
       window.__LY_DEFER_INIT__ = true;
-      // 暴露分块按需解密能力给运行时
-      window.LY = window.LY || {};
+      // 暴露分块按需解密能力给运行时（必须带 pages，否则 bundle 的 registerPage 会因 window.LY.pages 缺失而失败，导致全站空白）
+      window.LY = window.LY || { pages: {} };
       window.LY.loadAgentChunk = loadAgentChunk;
       if (SCRIPTS.length === 0) {
         throw new Error("未配置 __DASH_SCRIPTS__，无法加载看板脚本");
