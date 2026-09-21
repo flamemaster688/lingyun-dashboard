@@ -1,9 +1,12 @@
 # ===== 部署产物（可重生成，不进库）=====
 dist/
+dist_preview/
 
 # ===== 看板数据（明文/密文均不进公开库；本地 encrypt 生成、仅部署到 gh-pages/dist）=====
 static/data.js
 static/data.js.enc
+static/data-agents.js
+static/data-agents.js.enc
 build/province_list_newfields.json
 
 # ===== 依赖 =====

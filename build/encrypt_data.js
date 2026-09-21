@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // -*- coding: utf-8 -*-
 // 加密看板数据：static/data.js -> static/data.js.enc
+//                 static/data-agents.js -> static/data-agents.js.enc（智能体逐月明细分块，按需解密）
 //
 // 设计（方案 B：gzip + AES-256-GCM + PBKDF2，前端密码解密）：
 //   - 密码从环境变量 DASH_PWD 读取，绝不写死进仓库/产物。
-//   - 明文 JSON 先用 gzip 压缩（浏览器端用 DecompressionStream 解压），
-//     把 27MB 级 JSON 压到约 5MB，大幅降低下载体积（解密慢的主因是下载+base64+解析）。
+//   - 明文 JSON 先用 gzip 压缩（浏览器端用 DecompressionStream 解压），降低下载体积。
 //   - 用 PBKDF2(SHA-256, 100000 次) 从密码派生 32 字节密钥。
 //   - 用 AES-256-GCM 加密【压缩后的字节】；authTag 拼到密文尾部（与浏览器 Web Crypto 约定一致）。
-//   - 产物为二进制文件，头部含 magic/kdf/压缩标记/迭代次数/各段长度，避免大段 base64 解码。
+//   - 产物为二进制文件，头部含 magic/kdf/压缩标记/迭代次数/各段长度。
 //
 // 用法：
 //   DASH_PWD=你的密码 node build/encrypt_data.js
@@ -28,17 +28,15 @@ if (!pwd) {
   process.exit(1);
 }
 
-const src = path.join(STATIC, "data.js");
-const raw = fs.readFileSync(src, "utf8");
-// 提取 window.LINGYUN_DATA = {...}; 中的 JSON 文本（保留原始对象，避免二次序列化改变结构）。
-// 用括号配平扫描定位 JSON 结束位置（data.js 末尾允许有附加赋值语句，如 LY_OVERVIEW_PANORAMA）。
-const _start = raw.indexOf("window.LINGYUN_DATA");
-const _brace = _start >= 0 ? raw.indexOf("{", _start) : -1;
-let _jsonText = null;
-if (_brace >= 0) {
+const ITER = 100000;
+
+// 括号/方括号配平，从 startIdx（应为 '{' 或 '['）开始，返回含结束括号的切片。
+function balancedSlice(text, startIdx) {
+  const open = text[startIdx];
+  const close = open === "{" ? "}" : "]";
   let depth = 0, inStr = false, esc = false;
-  for (let i = _brace; i < raw.length; i++) {
-    const ch = raw[i];
+  for (let i = startIdx; i < text.length; i++) {
+    const ch = text[i];
     if (inStr) {
       if (esc) esc = false;
       else if (ch === "\\") esc = true;
@@ -46,45 +44,72 @@ if (_brace >= 0) {
       continue;
     }
     if (ch === '"') inStr = true;
-    else if (ch === "{") depth++;
-    else if (ch === "}") { depth--; if (depth === 0) { _jsonText = raw.slice(_brace, i + 1); break; } }
+    else if (ch === open) depth++;
+    else if (ch === close) { depth--; if (depth === 0) return text.slice(startIdx, i + 1); }
   }
+  throw new Error("未找到配平的结束括号");
 }
-if (!_jsonText) {
+
+// 从文本里抽取 marker 之后的对象或数组字面量文本
+function extractPayload(text, marker, bracket) {
+  const m = text.indexOf(marker);
+  if (m < 0) return null;
+  const b = text.indexOf(bracket, m);
+  if (b < 0) return null;
+  return balancedSlice(text, b);
+}
+
+// 加密一段 JSON 文本为二进制文件（LYE1 头 + salt + iv + tag + ciphertext）
+function encryptJsonToFile(jsonText, outName) {
+  const jsonBuf = Buffer.from(jsonText, "utf8");
+  const compressed = zlib.gzipSync(jsonBuf, { level: 9 });
+  const salt = crypto.randomBytes(16);
+  const key = crypto.pbkdf2Sync(pwd, salt, ITER, 32, "sha256");
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const enc = Buffer.concat([cipher.update(compressed), cipher.final()]);
+  const tag = cipher.getAuthTag();
+
+  const header = Buffer.alloc(22);
+  header.write("LYE1", 0, "ascii");
+  header[4] = 0; // kdf: 0 = PBKDF2-SHA256
+  header[5] = 1; // compression: 1 = gzip
+  header.writeUInt32BE(ITER, 6);
+  header.writeUInt32BE(salt.length, 10);
+  header.writeUInt32BE(iv.length, 14);
+  header.writeUInt32BE(tag.length, 18);
+
+  const out = Buffer.concat([header, salt, iv, tag, enc]);
+  fs.writeFileSync(path.join(STATIC, outName), out);
+
+  console.log("✓ 已生成 " + outName);
+  console.log("  明文 JSON :", (jsonBuf.length / 1024 / 1024).toFixed(1), "MB");
+  console.log("  压缩后   :", (compressed.length / 1024 / 1024).toFixed(1), "MB");
+  console.log("  密文文件 :", (out.length / 1024 / 1024).toFixed(1), "MB");
+}
+
+// 1) 主数据：window.LINGYUN_DATA = {...}
+const dataSrc = path.join(STATIC, "data.js");
+const dataRaw = fs.readFileSync(dataSrc, "utf8");
+const dataJson = extractPayload(dataRaw, "window.LINGYUN_DATA", "{");
+if (!dataJson) {
   console.error("✗ 无法从 data.js 解析 window.LINGYUN_DATA");
   process.exit(1);
 }
-const jsonText = _jsonText;
-const jsonBuf = Buffer.from(jsonText, "utf8");
+encryptJsonToFile(dataJson, "data.js.enc");
 
-// 1) gzip 压缩（级别 9，最大化压缩率以降低下载体积）
-const compressed = zlib.gzipSync(jsonBuf, { level: 9 });
+// 2) 智能体逐月明细分块：window.LINGYUN_AGENT_MONTHLY = [...]（按需解密，避免首屏解析 22MB）
+const chunkSrc = path.join(STATIC, "data-agents.js");
+if (fs.existsSync(chunkSrc)) {
+  const chunkRaw = fs.readFileSync(chunkSrc, "utf8");
+  const chunkJson = extractPayload(chunkRaw, "window.LINGYUN_AGENT_MONTHLY", "[");
+  if (chunkJson) {
+    encryptJsonToFile(chunkJson, "data-agents.js.enc");
+  } else {
+    console.warn("⚠ 未从 data-agents.js 解析到数组，跳过分块加密");
+  }
+} else {
+  console.log("ℹ 未找到 data-agents.js，跳过分块加密（将作为整体 data.js 的一部分已加密）");
+}
 
-// 2) PBKDF2 派生密钥 + AES-256-GCM 加密压缩字节
-const salt = crypto.randomBytes(16);
-const ITER = 100000;
-const key = crypto.pbkdf2Sync(pwd, salt, ITER, 32, "sha256");
-const iv = crypto.randomBytes(12);
-const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
-const enc = Buffer.concat([cipher.update(compressed), cipher.final()]);
-const tag = cipher.getAuthTag();
-
-// 3) 组装二进制文件（小端无关，统一用大端 uint32）
-//    magic(4) | kdf(1) | comp(1) | iter(4) | saltLen(4) | ivLen(4) | tagLen(4) | salt | iv | tag | ciphertext
-const header = Buffer.alloc(22);
-header.write("LYE1", 0, "ascii"); // 4 字节魔数，便于前端校验文件格式
-header[4] = 0;                    // kdf: 0 = PBKDF2-SHA256
-header[5] = 1;                    // compression: 1 = gzip（浏览器 DecompressionStream）
-header.writeUInt32BE(ITER, 6);
-header.writeUInt32BE(salt.length, 10);
-header.writeUInt32BE(iv.length, 14);
-header.writeUInt32BE(tag.length, 18);
-
-const out = Buffer.concat([header, salt, iv, tag, enc]);
-fs.writeFileSync(path.join(STATIC, "data.js.enc"), out);
-
-console.log("✓ 已生成 static/data.js.enc（二进制：gzip + AES-256-GCM）");
-console.log("  明文 JSON :", (jsonBuf.length / 1024 / 1024).toFixed(1), "MB");
-console.log("  压缩后   :", (compressed.length / 1024 / 1024).toFixed(1), "MB");
-console.log("  密文文件 :", (out.length / 1024 / 1024).toFixed(1), "MB");
-console.log("  提醒     : 明文 data.js 请勿随站点发布；如需换密码，换 DASH_PWD 重跑即可。");
+console.log("提醒：明文 data.js / data-agents.js 请勿随站点发布；如需换密码，换 DASH_PWD 重跑即可。");

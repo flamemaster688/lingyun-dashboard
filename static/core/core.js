@@ -683,6 +683,7 @@
         // 重新求值 data.js，刷新全局快照
         new Function(txt)();
         var fresh = window.LINGYUN_DATA;
+        if (!fresh.agentMonthly && window.LINGYUN_AGENT_MONTHLY) fresh.agentMonthly = window.LINGYUN_AGENT_MONTHLY;
         if (!fresh || !fresh.meta) throw new Error("数据结构异常");
         userDataLoaded = false;
         applyData(fresh);
@@ -1096,6 +1097,7 @@
       .then(function (txt) {
         new Function(txt)();
         var fresh = window.LINGYUN_DATA;
+        if (!fresh.agentMonthly && window.LINGYUN_AGENT_MONTHLY) fresh.agentMonthly = window.LINGYUN_AGENT_MONTHLY;
         if (!fresh || !fresh.meta) throw new Error("数据结构异常");
         st.data = fresh; st.source.type = "default"; st.source.files = [];
         if (tab === currentTab) {
@@ -1182,8 +1184,43 @@
     });
 
     renderCurrent("overview");
+
+    // 后台预载智能体逐月明细分块（22MB），使「智能体」页打开时无需等待解析
+    setTimeout(function () {
+      if (window.LY && window.LY.ensureAgentMonthly) window.LY.ensureAgentMonthly(function () {});
+    }, 0);
   }
   function curTab() { return currentTab; }
+
+  // ---------- 智能体逐月明细分块：按需懒加载（性能修复核心） ----------
+  // 22MB 的 agentMonthly 只被「智能体」页使用；首屏不再解析它。
+  // 本函数确保分块就绪后回调：已就绪→立即；否则加密构建走 loadAgentChunk，
+  // 明文预览走 fetch('data-agents.js')，加载完成写入 window.LINGYUN_DATA.agentMonthly。
+  window.LY.ensureAgentMonthly = function (cb) {
+    cb = cb || function () {};
+    var D = window.LINGYUN_DATA || {};
+    if (D.agentMonthly) { cb(null); return; }
+    if (window.LINGYUN_AGENT_MONTHLY) {
+      D.agentMonthly = window.LINGYUN_AGENT_MONTHLY;
+      cb(null); return;
+    }
+    if (window.LY._amLoading) { window.LY._amCbs.push(cb); return; }
+    window.LY._amLoading = true;
+    window.LY._amCbs = [cb];
+    var finish = function (err) {
+      if (window.LINGYUN_AGENT_MONTHLY) window.LINGYUN_DATA.agentMonthly = window.LINGYUN_AGENT_MONTHLY;
+      var cbs = window.LY._amCbs || []; window.LY._amCbs = []; window.LY._amLoading = false;
+      cbs.forEach(function (f) { try { f(err); } catch (e) {} });
+    };
+    if (window.LY.loadAgentChunk) {
+      window.LY.loadAgentChunk(function (err) { finish(err); });
+    } else {
+      fetch("data-agents.js?_cb=" + Date.now(), { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+        .then(function (txt) { (new Function(txt))(); finish(null); })
+        .catch(function (err) { console.warn("[core] 智能体分块加载失败:", err && err.message); finish(err); });
+    }
+  };
 
   // 暴露 init，供解密引导(decrypt.js)在全部脚本(含页面)就绪后显式调用，
   // 避免动态加载时 core.js 在页面尚未注册就自动 init 导致首屏空白。

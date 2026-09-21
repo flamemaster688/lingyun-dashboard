@@ -54,6 +54,7 @@ function copyDir(src, dst) {
 const COPY = [
   ["vendor", "vendor", true],
   ["data.js.enc", "data.js.enc", false],   // 加密数据（替代明文 data.js）
+  ["data-agents.js.enc", "data-agents.js.enc", false], // 智能体逐月明细分块（懒加载，仅智能体页按需解密）
   ["decrypt.js", "decrypt.js", false],     // 密码引导（方案 B）
   ["style.v6.css", "style.v6.css", false],
   ["metrics_catalog.json", "metrics_catalog.json", false],

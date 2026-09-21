@@ -3430,6 +3430,22 @@
     _idxEntity = _idxProv = _idxMonth = _idxProvMonth = null;
     built = false;
     loadMeta();
+
+    // —— 懒加载 agentMonthly 分块（性能修复：首屏不再同步解析 22MB 明细）——
+    if (!window.LINGYUN_DATA.agentMonthly && !window.LINGYUN_AGENT_MONTHLY) {
+      var _ld = byId("agRoot");
+      if (_ld) _ld.innerHTML = '<div class="agx-loading" style="padding:48px;text-align:center;color:#64748b">正在加载智能体明细数据（约 22MB）…</div>';
+      if (window.LY && window.LY.ensureAgentMonthly) {
+        window.LY.ensureAgentMonthly(function () { renderAgents(); });
+      } else if (_ld) {
+        _ld.innerHTML = '<div class="agx-empty">智能体明细数据未加载，请刷新页面后重试。</div>';
+      }
+      return;
+    }
+    if (!window.LINGYUN_DATA.agentMonthly && window.LINGYUN_AGENT_MONTHLY) {
+      window.LINGYUN_DATA.agentMonthly = window.LINGYUN_AGENT_MONTHLY;
+    }
+
     var note = document.querySelector && document.querySelector(".filter-note");
     if (note) note.textContent = "预览数据：来自【合】灵运BI重要数据_智能体分类_20260902.xlsx · 正式接入由基座统一生成 data.js";
     buildShell();
